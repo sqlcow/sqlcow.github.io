@@ -1,0 +1,334 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FPS手游逆向分析高清重制版 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="FPS手游逆向分析高清重制版 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="本文最初写于2022年7月份，当时的作者还不会markdown语法。本文作者于2023年重制此文，使用了更加整洁的排版，更加清晰的句法。
+
+矩阵
+谈谈对矩阵的理解
+谈谈个人对于矩阵的理解:所谓矩阵就是相机 即人物视角 当今的游戏人物的移动分..." />
+    <meta name="keywords" content="手游逆向,安卓" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              FPS手游逆向分析高清重制版
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                9 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/fpsnx/" class="post-tag">
+                  # 手游逆向
+                </a>
+              
+                <a href="https://sqlcow.github.io/az/" class="post-tag">
+                  # 安卓
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora8374eb2c5fd6405bbf292a071570ff7b.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>本文最初写于2022年7月份，当时的作者还不会markdown语法。本文作者于2023年重制此文，使用了更加整洁的排版，更加清晰的句法。</p>
+<!-- more -->
+<h1 id="矩阵">矩阵</h1>
+<h2 id="谈谈对矩阵的理解">谈谈对矩阵的理解</h2>
+<p>谈谈个人对于矩阵的理解:所谓矩阵就是<strong>相机</strong> 即人物视角 当今的游戏人物的移动分为两部分：<strong>游戏世界中的人物</strong>在移动和<strong>相机的移动</strong>。相机的移动使得玩家可以跟得上人物的行动，如果游戏中的人物在移动，相应的相机也会移动。同样的，<strong>转动视角其实就是在转动相机</strong>，人物前后移动相机也会动。那我们是不是可以利用<strong>不断地改变矩阵来搜索游戏中变动的值</strong>从而找到矩阵呢。Of course 但是如果你拿来一个矩阵demo你就会发现，前后移动人物的时候 相机矩阵只有两个值在动，左右移动同理。这四个值中<strong>有一个值</strong>是不管左右还是前后移动都在变化的。所以我们实际找的就是这一个值 找到以后转到此地址如果是16条那么就是找到了矩阵。</p>
+<h2 id="实际寻找游戏矩阵">实际寻找游戏矩阵</h2>
+<ul>
+<li>首先要知道游戏的矩阵在什么内存中 不同游戏所使用的引擎不同所以矩阵位置也不一样</li>
+<li>Unity引擎的游戏矩阵在CA内存；UE4(虚幻4)引擎的游戏矩阵在A内存（这样说并不严谨 只是本地的矩阵在CA和A内存 还有一个云端矩阵）</li>
+</ul>
+<p>有两种方式找到矩阵</p>
+<p>① 如刚开始的引言中所说，模糊到那一个一直在变动的矩阵值。这个值在<strong>矩阵头部</strong>，根据这个值的地址就可以找到矩阵。</p>
+<p>上+下-类似于数学中的坐标系（实际上就是坐标系）</p>
+<p><strong>向上转动视角搜索变大了，向下转动视角搜索变小了</strong>，如此反复直到剩大概几百条值的时候挨个跳进去看，有没有矩阵的特征。矩阵特征在后面会讲</p>
+<p>②特征码寻找矩阵</p>
+<p>手游特征码：h00 00 00 00 00 00 00 00 00 00 80 3F 00 00 80 3F 00 00 80 3F 00 00 80 3F 00 00 00 00 00 00 00 00 00 00 80 3F 00 00 00 00 00 00 00 00 00 00 80 3F 00 00 80 3F 00 00 00 00</p>
+<p>端游特征码：00 00 00 00 00 00 00 00 00 00 80 3F 00 00 80 3F 00 00 80 3F 00 00 80 3F 00 00 00 00 00 00 00 00 00 00 80 3F 00 00 00 00 00 00 00 00 00 00 80 3F 00 00 80 3F 00 00 00 00</p>
+<p>打开选择对应的内存直接搜索此特征码即可</p>
+<p>搜到的数值**改善 63 **搜索列表全部保存</p>
+<p>保存下来以后随便找一个值转到此地址。（因为这几个值的地址都很接近所以找哪个值都是一样的）其实这个时候矩阵就已经找到了 但是值太多不容易看出来哪一条是</p>
+<p><strong>需要再次搜索</strong></p>
+<p>全选替换搜索列表类型是F类型</p>
+<p>转动一下视角<strong>再次模糊有变化</strong></p>
+<p>还是随便找一个值转到此地址 就是矩阵附近</p>
+<h2 id="如何区别游戏矩阵">如何区别游戏矩阵</h2>
+<p>这里同样的 不同的引擎矩阵特征也不一样</p>
+<p><strong>不论是ue4还是unity 矩阵内部16个值至少有一个是0F</strong></p>
+<p><strong>Unity引擎矩阵 头小尾大，全是小数，最后两个相似，头尾上下各有不变值</strong></p>
+<p>**Ue4 引擎矩阵  头小尾大，中间至少3个固定值 **（ue3引擎的矩阵还有一个特征就是最后两个值很接近一般整数部分都是相同的） 实际上找到了连在一起的16个值，周围都是0F而且转动视角会变化。那大概率就是矩阵。</p>
+<p>除了上述的两条矩阵必有的特征以外</p>
+<p>此外游戏中<strong>还有假矩阵的存在</strong></p>
+<p>以下的三个特征如果出现了任意一条那么就说明这一定不是矩阵</p>
+<ul>
+<li>ue4和unity通矩阵头上没有固定值的</li>
+<li>unity引擎矩阵最后2个不相似不是最大的值</li>
+<li>ue4引擎矩阵内没有3个固定值的</li>
+</ul>
+<h1 id="自动寻找矩阵">自动寻找矩阵</h1>
+<p><strong>通过上述步骤 我们找到了矩阵，但矩阵确会在每次打开游戏后由于内存的分配而重新加载，如何实现自动寻找矩阵便是我们要考虑的问题</strong></p>
+<p><strong>想要编写一款合格的辅助，必然不能让用户每次使用都打开修改器找到这一局游戏的矩阵</strong>**</p>
+<h2 id="通过特征码定位矩阵">通过特征码定位矩阵</h2>
+<p>所谓特征码就是总出现在变动值附近的不变动的值</p>
+<p>与上文的通用特征码不同，定位矩阵的特征码<strong>在不同的游戏中是不一样的</strong></p>
+<p>矩阵16条的第一条就是<strong>矩阵头部</strong></p>
+<p><strong>主特征码是相对于矩阵头部计算的偏移</strong></p>
+<p><strong>副特征码是相对于主特征码计算的偏移</strong></p>
+<p>填入模板即可</p>
+<p>模板 <a href="https://shuj.lanzouj.com/iAqfA09pnkle">特征码定位矩阵</a></p>
+<h2 id="通过基址定位矩阵">通过基址定位矩阵</h2>
+<blockquote>
+<p>基址和偏移量实际上是汇编语言中的概念。但是游戏必须用高级语言编写，基址和偏移量是编译成成品apk或者exe后的东西。所以这个东西只对那些想小动作的人有用。游戏公司编译的源代码。他们经常试图增加数据加密的反向难度。事实上，他们不希望别人找到自己的游戏基址。至于这个东西是怎么产生的，如果你知道C和assembly，你自己就能弄清楚。</p>
+</blockquote>
+<p><strong>使用基址扫描脚本需要配合增加了函数的修改器</strong></p>
+<p>工具<a href="https://shuj.lanzouj.com/ixgqB09pnlcb">chainer3.0</a> <a href="https://shuj.lanzouj.com/iojv509pnlva">执行器</a></p>
+<p>扫描矩阵头部,<strong>深度4层搜索范围从512开始依次翻倍</strong></p>
+<p>如果搜索范围足够大可以扫出来很多基址</p>
+<p>而ue4矩阵大部分偏移都是0x20+0x270或0x280</p>
+<p><strong>保留偏移量为0x20+0x270或0x280的值</strong>**</p>
+<p>这就是基址,比如0x26BAB8</p>
+<h1 id="世界数组uworld">世界数组UWORLD</h1>
+<p><strong>首先，世界地址只是针对于第二种绘制方法来说的，如果不使用基址绘制的话是不需要找世界地址的</strong>，跳过这一章直接找人物坐标即可。</p>
+<p>关于世界地址无非就两种找法，正向或者逆向</p>
+<h2 id="正向寻找">正向寻找</h2>
+<p>相比于逆向寻找世界地址，正向明显更加简便而且门槛更低</p>
+<p><strong>打开修改器搜索50~300 A内存，D类型。<strong>如果第一次找到的值不够多的话可以适当加大搜索范围。另外</strong>一定要进到对局里面搜索</strong>，在对战大厅是不行的。</p>
+<p><strong>搜到以后捡一把枪，开枪会让数值变大 。</strong></p>
+<p>如此反复几次后 剩余的值找较小的转到此地址进去看。</p>
+<p><strong>世界一般都不会太大。</strong></p>
+<p>找一条较小的值，转进去以后距离原地址8个偏移量（这条值向上和向下数两个单位）的地方如果值都是紫色的。</p>
+<p>那么<strong>选中这条紫色的值（注意不是原地址）转到指针之后的数据很整齐，任意两条数据相加等于8</strong> ，这条紫色的值就是世界数组。</p>
+<h2 id="逆向寻找">逆向寻找</h2>
+<p>是一门很深的学问 需要一些引擎知识和逆向基础 这里推荐小破站的一门课</p>
+<p>UE4 DUMP SDK 《UE4游戏安全引擎分析课程》</p>
+<p>可能对于小白来说还是有些深奥了，而且课程时长较长。</p>
+<p>所以如果只是追求结果，可以不去了解这是怎么做到的。</p>
+<p><strong>Github上有很多优秀的开源的项目都可以轻松做到dump出sdk来</strong></p>
+<p>比如il2cppdumper可以用来dump u3d引擎游戏的sdk。</p>
+<p>以及ue4dumper用来dump ue4引擎的游戏。</p>
+<p>但是要注意：</p>
+<p><strong>il2cppdumper以及衍生出来的auto-il2cppdumper是可以一键dump出游戏包括世界数组在内的所有数据的。</strong></p>
+<p><strong>而ue4dumper需要提前通过正向寻找找到世界数组偏移</strong></p>
+<h1 id="自动定位世界数组">自动定位世界数组</h1>
+<p><strong>同样可以使用特征码或者基址 工具同上文矩阵的定位方法</strong></p>
+<p>使用基址定位的话<strong>扫描深度4 偏移量从512开始加</strong>，</p>
+<p>扫出来最短的一般就是世界数组偏移。</p>
+<p>ps：端游和手游差异较大</p>
+<p>对于端游来说有以下三种方法（转自UE4Engine逆向文档）</p>
+<p><strong>1）、字符串法</strong></p>
+<p><strong>48 8B 1D ?? ?? ?? ?? 48 85 DB 74 3B 41 B0 01</strong></p>
+<p>UE4通用   关键字：SeamlessTravel FlushLevelStreamin</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora8374eb2c5fd6405bbf292a071570ff7b.png" alt="img" loading="lazy"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动" loading="lazy">编辑</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorab279982e70f84c04bde33b75ab83c700.png" alt="img" loading="lazy"><img src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="点击并拖拽以移动" loading="lazy">编辑</p>
+<p><strong>2）、调试符号法</strong></p>
+<p><strong>关键字：Gworld</strong></p>
+<p>Ctrl+G 搜索Gworld ，复制跳到的地址-基地址就是偏移</p>
+<p><strong>3）、反推法(手游)</strong></p>
+<p><strong>找到count，反推</strong></p>
+<blockquote>
+<p>本文初作有些仓促，作者当时也是新手一枚，现在看来，多半有半途而废之嫌疑。还有很多也很重要的东西当时并没有心力写出。比如人物地址，血量显示等。</p>
+<p>写本文的初心是致敬几年前那个什么也不懂的自己的学习精神，想让更多小白能不被坑蒙拐骗。可惜耗时过长，草草了之。</p>
+<p>世间哪得双全法，就此搁笔</p>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E7%9F%A9%E9%98%B5">矩阵</a>
+<ul>
+<li><a href="#%E8%B0%88%E8%B0%88%E5%AF%B9%E7%9F%A9%E9%98%B5%E7%9A%84%E7%90%86%E8%A7%A3">谈谈对矩阵的理解</a></li>
+<li><a href="#%E5%AE%9E%E9%99%85%E5%AF%BB%E6%89%BE%E6%B8%B8%E6%88%8F%E7%9F%A9%E9%98%B5">实际寻找游戏矩阵</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E5%8C%BA%E5%88%AB%E6%B8%B8%E6%88%8F%E7%9F%A9%E9%98%B5">如何区别游戏矩阵</a></li>
+</ul>
+</li>
+<li><a href="#%E8%87%AA%E5%8A%A8%E5%AF%BB%E6%89%BE%E7%9F%A9%E9%98%B5">自动寻找矩阵</a>
+<ul>
+<li><a href="#%E9%80%9A%E8%BF%87%E7%89%B9%E5%BE%81%E7%A0%81%E5%AE%9A%E4%BD%8D%E7%9F%A9%E9%98%B5">通过特征码定位矩阵</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E5%9F%BA%E5%9D%80%E5%AE%9A%E4%BD%8D%E7%9F%A9%E9%98%B5">通过基址定位矩阵</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%96%E7%95%8C%E6%95%B0%E7%BB%84uworld">世界数组UWORLD</a>
+<ul>
+<li><a href="#%E6%AD%A3%E5%90%91%E5%AF%BB%E6%89%BE">正向寻找</a></li>
+<li><a href="#%E9%80%86%E5%90%91%E5%AF%BB%E6%89%BE">逆向寻找</a></li>
+</ul>
+</li>
+<li><a href="#%E8%87%AA%E5%8A%A8%E5%AE%9A%E4%BD%8D%E4%B8%96%E7%95%8C%E6%95%B0%E7%BB%84">自动定位世界数组</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/shi-yong-hexogithubgitee-da-jian-ge-ren-bo-ke-jiao-cheng/">
+              <h3 class="post-title">
+                使用 Hexo+GitHub/gitee 搭建个人博客教程
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,473 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>基于cnn卷积神经网络实现的手写数字识别 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="基于cnn卷积神经网络实现的手写数字识别 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="手写数字识别最好的算法我认为就是cnn卷积神经网络了
+
+
+最近一直在弄这个了，也算是小有成效。写篇博客记录一下。
+
+全文脉络：
+本文首先介绍了神经网络编程的基本原理，其次介绍了cnn卷积神经网络实现流程。
+
+
+
+神经网络
+二维卷积神经网络
+..." />
+    <meta name="keywords" content="模型,人工智能" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              基于cnn卷积神经网络实现的手写数字识别
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                12 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/mx/" class="post-tag">
+                  # 模型
+                </a>
+              
+                <a href="https://sqlcow.github.io/rgzn/" class="post-tag">
+                  # 人工智能
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMzAyMDQyNTgwNTctODIxMjY3ODEuanBn" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>手写数字识别最好的算法我认为就是cnn卷积神经网络了</p>
+<!-- more -->
+<blockquote>
+<p>最近一直在弄这个了，也算是小有成效。写篇博客记录一下。</p>
+</blockquote>
+<p>全文脉络：</p>
+<p>本文首先介绍了神经网络编程的基本原理，其次介绍了cnn卷积神经网络实现流程。</p>
+<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">神经网络</a></li>
+<li><a href="#%E4%BA%8C%E7%BB%B4%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">二维卷积神经网络</a>
+<ul>
+<li><a href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A">名词解释：</a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E6%B5%81%E7%A8%8B%E4%BB%A5%E6%89%8B%E5%86%99%E6%95%B0%E5%AD%97%E8%AF%86%E5%88%AB%E4%B8%BA%E4%BE%8B">代码流程（以手写数字识别为例）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="神经网络">神经网络</h2>
+<ul>
+<li><strong>神经网络的流程包括什么</strong></li>
+</ul>
+<p>首先放张图镇楼<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjcxOTA1NDM0OTktMjYxNDI4MC5qcGc" alt="" loading="lazy">本文说的神经网络实际上是特指前馈神经网络。</p>
+<p>多层神经网络是由<strong>双层神经网络</strong>推广而来的，下面介绍推广过程。</p>
+<p><strong>感知机：</strong><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMzAyMDQyNTgwNTctODIxMjY3ODEuanBn" alt="" loading="lazy"></p>
+<p>实际上就是单层神经网络，包括输入层和输出层</p>
+<p>输入一个值，经过一层权值计算过后，输出结果。输出公式可以改写成：g(<strong>W</strong> * <strong>a</strong>) = <strong>z</strong>;</p>
+<p>我们需要做的就是：通过合适的训练算法更改权值，使得预测结果更加接近要求</p>
+<p><strong>由感知机（单层神经网络）推广到两层神经网络（多层感知机）:</strong></p>
+<p>单层神经网络只能进行线性分类任务，毕竟是矩阵相乘出来的，如何推广到非线性分类任务呢，我们在感知机的输入层和输出层之间添加了一个隐藏层。</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjIxNjQ3MzEyNDktMzYwOTIxMDE0LmpwZw" alt="" loading="lazy"></figure>
+<p>计算最终输出z的方式是利用了中间层的a1(2)，a2(2)和第二个权值矩阵计算得到的</p>
+<p><strong>延续两层神经网络的方式来设计一个多层神经网络。</strong></p>
+<p>在两层神经网络的输出层后面，继续添加层次。原来的输出层变成中间层，新加的层次成为新的输出层。所以可以得到下图。</p>
+<figure data-type="image" tabindex="2"><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjQyMDQzMzkyMzQtMTk5NDYyMDMxMy5qcGc?x-oss-process=image/format,png" alt="" loading="lazy"></figure>
+<p>把计算权重和的这个过程叫做“<strong>正向传播</strong>”。</p>
+<ul>
+<li><strong>神经网络是如何进行训练的？</strong></li>
+</ul>
+<p>定义损失：首先给所有参数赋上随机值。我们使用这些随机生成的参数值，来预测训练数据中的样本。样本的预测目标为yp，真实目标为y。那么，定义一个值loss，计算公式如下。</p>
+<p>loss = (yp - y)2</p>
+<p>那么接下来我们的训练任务就可以转换成：如何优化参数，能够让损失函数的值最小。</p>
+<p>使用的是<strong>梯度下降</strong>算法。梯度下降算法每次计算参数在当前的梯度，然后让参数向着梯度的反方向前进一段距离，不断重复，直到梯度接近零时截止。一般这个时候，所有的参数恰好达到使损失函数达到一个最低值的状态。</p>
+<p>由于结构复杂，每次计算梯度的代价很大。因此还需要使用<strong>反向传播</strong>算法。反向传播算法是利用了神经网络的结构进行的计算。不一次计算所有参数的梯度，而是从后往前。首先计算输出层的梯度，然后是第二个参数矩阵的梯度，接着是中间层的梯度，再然后是第一个参数矩阵的梯度，最后是输入层的梯度。计算结束以后，所要的两个参数矩阵的梯度就都有了。</p>
+<ul>
+<li><strong>神经网络是如何实现由线性的矩阵运算到非线性的？</strong></li>
+</ul>
+<p>通过激活函数和多层感知机，在每次权重的传递过程中都要进行一次激活。具体方法如下</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230615191632228.png" alt="image-20230615191632228" loading="lazy"></figure>
+<ul>
+<li><strong>激活函数固定吗？</strong></li>
+</ul>
+<p>不固定，在单层神经网络时，使用的激活函数是sgn函数。到了两层神经网络时，使用的最多的是sigmoid函数。而到了多层神经网络时，通过一系列的研究发现，ReLU函数在训练多层神经网络时，更容易收敛，并且预测性能更好。</p>
+<ul>
+<li><strong>训练神经网络的目的是什么？</strong></li>
+</ul>
+<p><strong>多层的神经网络</strong>的本质就是复杂函数拟合。训练的主题仍然是优化和泛化。梯度下降算法以及反向传播算法在多层神经网络中的训练中仍然工作的很好。目前学术界主要的研究既在于开发新的算法，也在于对这两个算法进行不断的优化。</p>
+<h2 id="二维卷积神经网络">二维卷积神经网络</h2>
+<h3 id="名词解释">名词解释：</h3>
+<ul>
+<li>特征提取器：<strong>卷积和下采样</strong>的过程就是为了<strong>提取图像的特征</strong></li>
+<li>卷积：为了<strong>保留原始图像的空间信息</strong>。每个通道都和一个卷积核做卷积最终相加。</li>
+<li>共享权重机制：卷积过后维数变多的原因：每一个<strong>卷积核的通道数量和输入通道个数</strong>一样，<strong>卷积核的个数和输出通道的个数</strong>一样。</li>
+<li>padding：防止因为<strong>卷积导致的图像高度和宽度的改变</strong>（3*3的卷积核卷积过程图像-2）</li>
+<li>下采样：（<strong>无权重</strong>，所以只需要做一次即可这里使用最大池化层）通道数不变，图像的宽度和高度改变，为了减少图像的特征量，<strong>降低运算需求</strong></li>
+<li>张量展开：为了得到<strong>线性的向量输入</strong></li>
+<li>全连接：每一个输入值和<strong>任意一个输出值都有权重</strong>的线形层。</li>
+<li>分类器：对<strong>向量</strong>的分类</li>
+</ul>
+<h3 id="代码流程以手写数字识别为例">代码流程（以手写数字识别为例）</h3>
+<ol>
+<li>定义一些超参数</li>
+</ol>
+<pre><code class="language-python">batch_size = 64 #每次训练的图片数量
+learning_rate = 0.01 #参数更新的步长
+momentum = 0.5 #梯度下降的动量大小，表示了模型在之前更新中的方向和速度。
+EPOCH = 1 #训练的轮数
+device=torch.device(&quot;cuda:0&quot;if torch.cuda.is_available()else &quot;cpu&quot;)
+</code></pre>
+<ol start="2">
+<li>数据集下载，数据预处理</li>
+</ol>
+<ul>
+<li>将图像转换为张量格式，并对其进行标准化</li>
+<li>MNIST数据集，标准化操作通过减去均值0.1307并除以标准差0.3081来实现。这两个值是通过对MNIST数据集进行的像素值统计，得到的每个通道的均值和标准差。</li>
+<li>减去均值（0.1307）然后除以标准差（0.3081）得到的是趋于正态分布的图像</li>
+</ul>
+<pre><code class="language-python">transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])#将图像转换为张量格式，并对其进行标准化
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)#下载训练集
+test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)#下载测试集
+print('下载数据集完成')
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#乱序加载数据集
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)#乱序加载数据集
+</code></pre>
+<ol start="3">
+<li>建立模型</li>
+</ol>
+<p>由于卷积和池化的特点，</p>
+<p>卷积结果和卷积之前图像大小改变**（卷积核大小%2）<em>2</em>*，通道数量变多；</p>
+<p>池化前后通道不变，图像大小/2；</p>
+<p>最后一次池化结束后view展开到全连接层，因为要做手写数字识别所以全连接层通道数一定为10；</p>
+<p>卷积过程需要提供三个参数：输入通道、输出通道、卷积核大小</p>
+<pre><code class="language-python">class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()#定义模型
+        self.conv1 = torch.nn.Sequential(#定义第一次卷积
+            torch.nn.Conv2d(1, 10, kernel_size=5),#定义卷积核大小卷积前后通道数目
+            torch.nn.ReLU(),#激活函数
+            torch.nn.MaxPool2d(kernel_size=2),#定义最大池化，池化用到的核大小3为2
+        )
+        self.conv2 = torch.nn.Sequential( 
+            torch.nn.Conv2d(10, 20, kernel_size=5),#定义第二次卷积，卷积过程需要提供三个参数：输入通道、输出通道、卷积核大小
+            torch.nn.ReLU(),#激活函数
+            torch.nn.MaxPool2d(kernel_size=2),
+        )
+        self.fc = torch.nn.Sequential( #展平阶段
+            torch.nn.Linear(320, 50),#第一次展平
+            torch.nn.Linear(50, 10),#第二次展平
+        )
+
+    def forward(self, x):#模型的前向传播函数，它接受输入 x。
+        batch_size = x.size(0)#每次读取的图片数量
+        x = self.conv1(x)  # 一层卷积层,一层池化层,一层激活层
+        x = self.conv2(x)  # 再来一次
+        x = x.view(batch_size, -1)  # 展平络需要的输入
+        x = self.fc(x)#展平后的 x 输入到全连接层（self.fc）进行计算，并将结果赋值给变量 x。
+        return x  # 返回值
+</code></pre>
+<ol start="4">
+<li>定义反馈模型的方式</li>
+</ol>
+<ul>
+<li>损失函数使用交叉熵损失</li>
+</ul>
+<p>由二分类推广到多分类，记住即可</p>
+<ul>
+<li>参数优化使用随机梯度下降</li>
+</ul>
+<p>torch.optim.SGD()：SGD优化器将根据此参数来更新模型。</p>
+<p>model.parameters()：这是一个模型对象（model）的方法，用于返回模型中所有需要进行优化的参数。它将返回一个包含这些参数的可迭代对象，供优化器使用。 lr=learning_rate：用于控制优化器在每次参数更新时的步长大小。 momentum=momentum：有助于加快训练速度并克服局部最小值。</p>
+<pre><code class="language-python">model = Net()#实例化模型
+model.load_state_dict(torch.load('model.pth')) #加载本地模型
+model.to(device)#加载到gpu上
+criterion = torch.nn.CrossEntropyLoss()  # 交叉熵损失
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)  # 定义学习率，冲量
+</code></pre>
+<ol start="5">
+<li>训练模型</li>
+</ol>
+<ul>
+<li>前馈（forward propagation）</li>
+<li>反馈（backward propagation）</li>
+<li>更新（update）</li>
+</ul>
+<pre><code class="language-python">def train(epoch):
+    running_loss = 0.0  # 清零全部loss
+    running_total = 0  #训练过程中的总样本数
+    running_correct = 0  #推断正确的样本数量
+    for batch_idx, data in enumerate(train_loader, 0):#使用 enumerate 函数迭代 train_loader 中的数据
+        inputs, target = data   #获得输入 inputs 和目标标签 target。
+        inputs, target = inputs.to(device), target.to(device) #加载数据到gpu上
+        optimizer.zero_grad()  #清零模型的梯度信息，为下一次迭代做准备
+        outputs = model(inputs)# 模型对inputs进行前向传播得到预测结果
+        loss = criterion(outputs, target)#计算loss
+        loss.backward()#把loss反馈给模型
+        optimizer.step()#反馈结束以后执行参数更新
+        running_loss += loss.item()# 把运行中的loss累加起来，为了下面300次一除
+        _, predicted = torch.max(outputs.data, dim=1) # 函数获取预测结果中的最大值及其对应的索引
+        running_total += inputs.shape[0]#计算一共训练使用的样本数。
+        running_correct += (predicted == target).sum().item()#计算准确推理的样本数
+        if batch_idx % 300 == 299:  # 每300次出一个平均损失,和准确率
+            print('[%d, %5d]: 和训练集正确答案的误差: %.3f , 判断正确率: %.2f %%'
+                  % (epoch + 1, batch_idx + 1, running_loss / 300, 100 * running_correct / running_total))
+            running_loss = 0.0  # 这小批300的loss清零
+            running_total = 0 #总共训练的的图片个数清零
+            running_correct = 0  # 这小批300的acc清零
+        torch.save(model.state_dict(), './model.pth') #保存模型
+</code></pre>
+<ol start="6">
+<li>测试模型准确率</li>
+</ol>
+<p>大体思路和训练模型一样，不过不对模型进行更新</p>
+<pre><code class="language-python">def test():
+    total = 0 #测试一共的样本数量
+    correct = 0 #测试正确的样本数量
+    with torch.no_grad():  # 不计算梯度，因为不进行梯度更新
+        for data in test_loader: #遍历test_loader中的每个数据批次。
+            images, labels = data #从data中解包出输入图像images和对应的标签labels
+            images, labels = images.to(device),labels.to(device)#加载数据到gpu上
+            outputs = model(images) #输入图像images输入模型model，并得到模型的输出
+            _, predicted = torch.max(outputs.data, dim=1)  # torch.max()函数在输出张量outputs.data的第1个维度上找到最大值和对应的索引
+            total += labels.size(0)  # 统计总样本数。
+            correct += (predicted == labels).sum().item()#逐元素比较，返回一个布尔张量，对所有为True的元素求和，将结果转换为Python标量，将预测正确的样本数加到correct上。
+    acc = correct / total #求正确率
+    print('[%d / %d]: 在测试集上的准确率为: %.1f %% ' % (epoch+1, EPOCH, 100 * acc))  # 求测试的准确率，正确数/总数
+    return acc
+
+</code></pre>
+<ol start="7">
+<li>本地推理模型</li>
+</ol>
+<p>同样需要数据处理，加载模型等步骤</p>
+<pre><code class="language-python"># 创建模型实例
+model = Net()  # 替换为你的模型类
+
+# 加载已训练的模型参数
+state_dict = torch.load('model.pth')
+
+# 将参数加载到模型中
+model.load_state_dict(state_dict)
+
+# 设置模型为评估模式
+model.eval()
+# 反色函数
+def inverse_transform(image):
+    return 1.0 - image
+# 定义图像转换
+transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.Resize((28, 28)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+    transforms.Lambda(inverse_transform)
+])
+# 读取并预处理图像
+image_path = 'E:\jupyter\手写数字识别\image.png'  # 替换为你的图像路径
+image = Image.open(image_path)
+image = transform(image).unsqueeze(0)  # 添加批处理维度
+
+# 进行推理
+with torch.no_grad():
+    output = model(image)
+print(output)
+# 获取预测结果
+_, predicted = torch.max(output, 1)
+predicted_class = predicted.item()
+
+print(f&quot;预测结果为: {predicted_class}&quot;)
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">神经网络</a></li>
+<li><a href="#%E4%BA%8C%E7%BB%B4%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">二维卷积神经网络</a>
+<ul>
+<li><a href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A">名词解释：</a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E6%B5%81%E7%A8%8B%E4%BB%A5%E6%89%8B%E5%86%99%E6%95%B0%E5%AD%97%E8%AF%86%E5%88%AB%E4%B8%BA%E4%BE%8B">代码流程（以手写数字识别为例）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/python-pa-qu-wang-yi-yun-yin-le-yin-le-xia-zai/">
+              <h3 class="post-title">
+                python爬取网易云音乐音乐下载
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,535 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>使用安卓内核驱动进行内存读写以实现过检测 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="使用安卓内核驱动进行内存读写以实现过检测 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="什么年代了，还在开传统外挂？当然是从系统层面啦！
+
+
+
+你是不是经常看到一些游戏辅助声称自己独家内核驱动，支持一切机型，无视游戏检测。
+
+
+本文将带领你，从0开始，编译属于自己的安卓内核驱动。
+
+
+通过本文：你将从一名初级的游戏辅助开发者，..." />
+    <meta name="keywords" content="手游逆向" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              使用安卓内核驱动进行内存读写以实现过检测
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                10 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/fpsnx/" class="post-tag">
+                  # 手游逆向
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoradb75ec6abae447e69a761a7bf717df21.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>什么年代了，还在开传统外挂？当然是从系统层面啦！</p>
+<!-- more -->
+<ul>
+<li>
+<p>你是不是经常看到一些游戏辅助声称自己<strong>独家内核驱动</strong>，<strong>支持一切机型</strong>，<strong>无视游戏检测</strong>。</p>
+</li>
+<li>
+<p>本文将带领你，<strong>从0开始</strong>，编译属于自己的<strong>安卓内核驱动</strong>。</p>
+</li>
+<li>
+<p>通过本文：你将从一名初级的游戏辅助开发者，摇身一变成为所谓的<strong>独家内核作者</strong></p>
+</li>
+<li>
+<p>本文只涉及过检测等内容，不涉及辅助编写。如果对辅助编写感兴趣的，请看我以前的文章。</p>
+</li>
+</ul>
+<p>[TOC]</p>
+<blockquote>
+<p>阅读本文的方法：</p>
+<p>请确保你拥有着强大的动手能力，以及对游戏辅助开发强烈的兴趣。</p>
+<p>请直接阅读<strong>内核编译部分</strong></p>
+<p><strong>前置知识部分</strong>类似于字典的附录，当你需要时，可以回来查找。正所谓：知其然，知其所以然。</p>
+</blockquote>
+<h2 id="前置知识">前置知识</h2>
+<h3 id="何为内核驱动">何为内核驱动</h3>
+<p>对于一个驱动来说，最重要的就是<code>3</code>个文件：</p>
+<ol>
+<li>源代码</li>
+<li>Kconfig</li>
+<li>Makefile</li>
+</ol>
+<p>只要按照固定的格式来编写这<code>3</code>个文件，<code>linux</code>内核的编译脚本就可以确保把我们的驱动程序编译进去。</p>
+<p>而编译一个内核模块有以下两种方式：</p>
+<ol>
+<li>编译进内核;</li>
+<li>编译为一个独立的驱动模块;</li>
+</ol>
+<p>首先，我们打开rwProcMem模块中的makefile文件<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoradb75ec6abae447e69a761a7bf717df21.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p>这段代码的意思是：</p>
+<pre><code class="language-c"># 定义模块名
+MODULE_NAME := rwProcMem37
+
+# 定义内核对象文件
+RESMAN_CORE_OBJS:=sys.o
+
+# 定义空的 glue 对象文件
+RESMAN_GLUE_OBJS:=
+
+# 如果已经在内核构建过程中了
+ifneq ($(KERNELRELEASE),)
+    # 指定需要链接的对象文件
+    $(MODULE_NAME)-objs:=$(RESMAN_GLUE_OBJS) $(RESMAN_CORE_OBJS)
+    # 声明需要编译成模块的源文件
+    obj-m := rwProcMem37.o
+else
+    # 如果不在内核构建过程中，则定义内核路径
+    KDIR := /cepheus-q-oss/out
+all:
+    # 切换到内核路径并编译模块
+    make -C $(KDIR) M=$(PWD) ARCH=arm64 SUBARCH=arm64 modules
+clean:
+    # 清理生成的文件
+    rm -f *.ko *.o *.mod.o *.mod.c *.symvers *.order
+endif
+
+</code></pre>
+<p>实际上这是一种固定写法。意为此模块的编译方式为：进入<code>rwProcMem37</code>目录，只编译这一个驱动模块。</p>
+<h3 id="安卓内核boot">安卓内核boot</h3>
+<p>Android不同于一般的嵌入式Linux系统环境固件的组成方式（booloader+kernel+rootfs），其将kernel、ramdisk(rootfs)、second stage(dtb、kernel.logd等)整体打包成一个boot.img文件</p>
+<p>而我们对内核的操作，无疑需要boot.img文件。</p>
+<p>下面将介绍，一般机型获取boot.img文件的方法</p>
+<h4 id="获取bootimg文件">获取boot.img文件</h4>
+<p>首先，请下载你机型现在版本的完整包。线刷包卡刷包均可。</p>
+<p>以小米12pro为例</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraa10420f9f2ba427d4721a27a7898b553.png" alt="11" loading="lazy"></figure>
+<p>在右上角，可以看到下载最新完整包的字样。</p>
+<p>下载好最新版完整包并传输到电脑上。</p>
+<p>接下来我们要用到<strong>payload_dumper.exe</strong>这个工具解包。</p>
+<p>[下载地址][https://shuj.lanzoue.com/i79XB0s5bf0f]</p>
+<p>新建一个文件夹，将解包工具放进去</p>
+<p>再次新建两个文件夹分别命名为<strong>payload_input</strong>和<strong>payload_output</strong></p>
+<p>最终文件夹结构如图<br>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora55004de0256d436ab3ce7df185642328.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p>将刚刚下载的<strong>最新版完整包</strong>用<strong>电脑自带的解压工具</strong>解压。</p>
+<p>找到<strong>payload.bin</strong>文件，放入<strong>payload_input</strong>文件夹之中</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora25862a8c0f984f20b7c405eb4a11d605.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>然后运行解包工具，在<strong>payload_output</strong>文件夹中可以找到解压出来的boot.img</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorad23d790fd2d09dd96e10bfd2fbfb2f4c.png" alt="1112" loading="lazy"></figure>
+<h3 id="将你的纯c项目适配内核过检测技术">将你的纯c项目，适配内核过检测技术</h3>
+<p>在rwProcMem33这个项目中，提供了完整的内存读写技术</p>
+<pre><code class="language-c++">//驱动_打开进程
+	uint64_t hProcess = rwDriver.OpenProcess(pid);
+	printf(&quot;调用驱动 OpenProcess 返回值:%&quot; PRIu64 &quot;\n&quot;, hProcess);
+	if (!hProcess) {
+		printf(&quot;调用驱动 OpenProcess 失败\n&quot;);
+		fflush(stdout);
+		return 0;
+	}
+
+
+	//驱动_读取进程内存
+	char readBuf[1024] = { 0 };
+	size_t real_read = 0;
+	//如果是单线程读内存，还可另选用极速版函数：ReadProcessMemory_Fast
+	BOOL read_res = rwDriver.ReadProcessMemory(hProcess, (uint64_t)pBuf, &amp;readBuf, sizeof(readBuf), &amp;real_read, FALSE);
+	printf(&quot;调用驱动 ReadProcessMemory 读取内存地址:%p,返回值:%d,读取到的内容:%s,实际读取大小:%zu\n&quot;, pBuf, read_res, readBuf, real_read);
+
+	//驱动_写入进程内存
+	memset(readBuf, 0, sizeof(readBuf));
+	snprintf(readBuf, sizeof(readBuf), &quot;%s&quot;, &quot;写入456&quot;);
+	size_t real_write = 0;
+	//如果是单线程写内存，还可另选用极速版函数：WriteProcessMemory_Fast
+	BOOL write_res = rwDriver.WriteProcessMemory(hProcess, (uint64_t)pBuf, &amp;readBuf, sizeof(readBuf), &amp;real_write, FALSE);
+	printf(&quot;调用驱动 WriteProcessMemory 写入内存地址:%p,返回值:%d,写入的内容:%s,实际写入大小:%zu\n&quot;, pBuf, write_res, readBuf, real_write);
+
+	printf(&quot;当前缓冲区内容 :%s,当前缓冲区的内存地址:%p\n&quot;, szBuf, pBuf);
+
+</code></pre>
+<p>替换纯c的内存读写模块即可，其他的部分不用进行改动</p>
+<p>之后重新编译纯c</p>
+<h3 id="win端编译纯c">win端编译纯c</h3>
+<h4 id="一下载ndk">一.下载NDK</h4>
+<p>NDK下载</p>
+<ul>
+<li>
+<p>下载注意区分32位和64位的</p>
+</li>
+<li>
+<p>下载完成之后直接解压</p>
+</li>
+<li>
+<p>如果需要下载最新的NDK版本，可能需要到谷歌官网去下载</p>
+</li>
+<li>
+<p><strong>想要编译纯c，请不要下载最新版ndk，最新版ndk已经停止了对gcc的支持。请下载<em>android-ndk-r17c</em>版本</strong></p>
+</li>
+</ul>
+<h4 id="二环境变量">二.环境变量</h4>
+<p>环境变量设置：输入NDK的路径</p>
+<h4 id="三检查ndk是否能正确运行">三.检查NDK是否能正确运行</h4>
+<p>如果确认环境变量路径配置没问题，命令行还是无法识别ndk-build的命令，可以尝试重启电脑或者命令行</p>
+<h4 id="四编译纯c">四.编译纯c</h4>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraa3d06ed4bf2d4936bd44f9b0d3a45810.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>在testko目录下，打开cmd命令行</p>
+<p>输入</p>
+<pre><code class="language-c">ndk-build
+</code></pre>
+<p>在libs目录中可以找到编译成功的纯c文件</p>
+<h3 id="下载对应版本的内核源码">下载对应版本的内核源码</h3>
+<p>首先下载<strong>adb工具</strong>，英文不好的可以下载一个搞机助手电脑版打开adb。然后连接手机。执行</p>
+<pre><code class="language-bash">adb shell cat /proc/version
+</code></pre>
+<p>查看自己手机的内核版本号</p>
+<p>如下图</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora7bfaddace6c7450b83fcb3a66e0e4112.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>我的手机内核版本号为 Linux version 4.14.180-perf-g11d81629da33</p>
+<p>然后去 https://source.android.com/setup/build/building-kernels 这里查看自己的源码分支</p>
+<p>并且下载源码</p>
+<pre><code class="language-bsah">repo init -u https://android.googlesource.com/kernel/manifest -b
+android-msm-coral-4.14-android12
+repo sync
+</code></pre>
+<p>之后的步骤中要用到</p>
+<h2 id="编译内核驱动模块~">编译内核驱动模块~</h2>
+<h3 id="环境配置">环境配置</h3>
+<p>建议使用ubuntu虚拟机或者云主机。</p>
+<p>以下命令如果执行报错，请自行解决，不论用什么方法，只要达到了命令前的描述即可。</p>
+<ul>
+<li>更换软件源为阿里源</li>
+</ul>
+<pre><code class="language-bash">sudo cp /etc/apt/sources.list /etc/apt/sources.list_backup
+sudo gedit /etc/apt/sources.list
+# 阿里云源
+deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted
+universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted
+universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main
+restricted universe multiverse
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential
+</code></pre>
+<ul>
+<li>安装git，curl，python</li>
+</ul>
+<pre><code class="language-bash">sudo apt-get install git
+git config --global user.email &quot;xxx@gmail.com&quot;
+git config --global user.name &quot;xxx&quot;
+##安装git
+sudo apt-get install curl
+mkdir ~/bin
+PATH=~/bin:$PATH
+curl https://storage.googleapis.com/git-repo-downloads/repo &gt;
+~/bin/repo
+chmod a+x ~/bin/repo
+##安装curl
+add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.9
+sudo ln -s /usr/bin/python3 /usr/bin/python
+##安装python
+</code></pre>
+<ul>
+<li>修改交换区大小</li>
+</ul>
+<pre><code class="language-bash">sudo swapoff /swapfile
+sudo rm /swapfile
+# 设置了32g交换区, 防止编译失败
+sudo dd if=/dev/zero of=/swapfile bs=1GB count=32
+sudo chmod 600 /swapfile
+sudo mkswap -f /swapfile
+sudo swapon /swapfile
+
+</code></pre>
+<h3 id="编译源码">编译源码</h3>
+<p><strong>下面开始，是对手机内核进行的操作。请务必一步一步进行，严格按照说明。否则将有变砖风险</strong></p>
+<h4 id="使用android-image-kitchen解压boot">使用android-image-kitchen解压boot</h4>
+<p>[下载链接][https://forum.xda-developers.com/attachments/android-image-kitchen-v3-8-win32-zip.5300919/]</p>
+<p>将boot.img放到其文件夹下面, 运行unpackimg.bat得到命令行参数</p>
+<p>注意：<strong>文件夹路径不能有中文</strong></p>
+<p>得到命令行参数如下<br>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora9447f2c1de734bf6a796be0c3d6fdcbc.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p><strong>请不要关闭命令行，得到的参数要用到</strong></p>
+<p>还在<strong>split_img</strong>文件下可以找到一个名为<strong>boot.img-ramdisk.cpio.gz</strong>的文件。如下图</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora662ef34df38d4f7ca3124f37158bc74d.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>将这个文件解压到最开始下载好的内核源码中，如果你还不知道如何下载你对应机型的内核源码，请参看<strong>前置知识</strong>中源码下载部分</p>
+<h4 id="在源码中加点私货">在源码中加点私货</h4>
+<p>下载[私货][http://aospxref.com/android-11.0.0_r21/xref/system/tools/mkbootimg/mkbootimg.py]</p>
+<p>到源码的根目录下</p>
+<p>修改build/build.sh, 在echo &quot; Files copied to ${DIST_DIR}&quot;之前加上</p>
+<pre><code class="language-bash">if [ -f &quot;${VENDOR_RAMDISK_BINARY}&quot; ]; then
+cp ${VENDOR_RAMDISK_BINARY} ${DIST_DIR}
+fi
+</code></pre>
+<h4 id="下载内核驱动源码">下载内核驱动源码</h4>
+<p><s>市面上大部分内核项目，都是用rwProcMem33的这个源码</s></p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora5b5247cf11e94e0cae5ddba3fb9ec760.jpeg" alt="在这里插入图片描述" loading="lazy"></figure>
+<pre><code>obj-m += rwProcMem.o
+</code></pre>
+<p>将drivers目录下的Makefile文件加一行</p>
+<pre><code>obj-m += rwProcMem/
+</code></pre>
+<p>修改ver_control.h, 将使用pagemap的宏定义启用</p>
+<p>取消掉ver-control.h中第二个宏的注释就行</p>
+<h4 id="开始编译">开始编译</h4>
+<p>其中的参数根据android-image-kitchen解包出的修改替换即可</p>
+<pre><code>BUILD_CONFIG=private/msm-google/build.config.floral
+BUILD_BOOT_IMG=1 MKBOOTIMG_PATH=mkbootimg.py
+VENDOR_RAMDISK_BINARY=boot.img-ramdisk.cpio KERNEL_BINARY=Image.lz4
+BOOT_IMAGE_HEADER_VERSION=2
+KERNEL_CMDLINE=&quot;console=ttyMSM0,115200n8
+androidboot.console=ttyMSM0 printk.devkmsg=on msm_rtb.filter=0x237
+ehci-hcd.park=3 service_locator.enable=1 androidboot.memcg=1
+cgroup.memory=nokmem usbcore.autosuspend=7
+androidboot.usbcontroller=a600000.dwc3 swiotlb=2048
+androidboot.boot_devices=soc/1d84000.ufshc loop.max_part=7
+buildvariant=user&quot; BASE_ADDRESS=0x00000000 PAGE_SIZE=4096
+build/build.sh
+</code></pre>
+<p>编译完成以后得到文件夹</p>
+<p>文件夹中的boot.img即为嵌入内存读写的新内核</p>
+<h3 id="刷入内核">刷入内核</h3>
+<p>使用命令</p>
+<pre><code>flash boot boot.img
+</code></pre>
+<p>即可刷入。配合前置知识中的修改纯c读写方法，即可做到绝大部分游戏裸奔。</p>
+<blockquote>
+<p>看到这里，相信你已经成功编译了属于自己的内核。</p>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86">前置知识</a>
+<ul>
+<li><a href="#%E4%BD%95%E4%B8%BA%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8">何为内核驱动</a></li>
+<li><a href="#%E5%AE%89%E5%8D%93%E5%86%85%E6%A0%B8boot">安卓内核boot</a>
+<ul>
+<li><a href="#%E8%8E%B7%E5%8F%96bootimg%E6%96%87%E4%BB%B6">获取boot.img文件</a></li>
+</ul>
+</li>
+<li><a href="#%E5%B0%86%E4%BD%A0%E7%9A%84%E7%BA%AFc%E9%A1%B9%E7%9B%AE%E9%80%82%E9%85%8D%E5%86%85%E6%A0%B8%E8%BF%87%E6%A3%80%E6%B5%8B%E6%8A%80%E6%9C%AF">将你的纯c项目，适配内核过检测技术</a></li>
+<li><a href="#win%E7%AB%AF%E7%BC%96%E8%AF%91%E7%BA%AFc">win端编译纯c</a>
+<ul>
+<li><a href="#%E4%B8%80%E4%B8%8B%E8%BD%BDndk">一.下载NDK</a></li>
+<li><a href="#%E4%BA%8C%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">二.环境变量</a></li>
+<li><a href="#%E4%B8%89%E6%A3%80%E6%9F%A5ndk%E6%98%AF%E5%90%A6%E8%83%BD%E6%AD%A3%E7%A1%AE%E8%BF%90%E8%A1%8C">三.检查NDK是否能正确运行</a></li>
+<li><a href="#%E5%9B%9B%E7%BC%96%E8%AF%91%E7%BA%AFc">四.编译纯c</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%8B%E8%BD%BD%E5%AF%B9%E5%BA%94%E7%89%88%E6%9C%AC%E7%9A%84%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81">下载对应版本的内核源码</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9D%97~">编译内核驱动模块~</a>
+<ul>
+<li><a href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE">环境配置</a></li>
+<li><a href="#%E7%BC%96%E8%AF%91%E6%BA%90%E7%A0%81">编译源码</a>
+<ul>
+<li><a href="#%E4%BD%BF%E7%94%A8android-image-kitchen%E8%A7%A3%E5%8E%8Bboot">使用android-image-kitchen解压boot</a></li>
+<li><a href="#%E5%9C%A8%E6%BA%90%E7%A0%81%E4%B8%AD%E5%8A%A0%E7%82%B9%E7%A7%81%E8%B4%A7">在源码中加点私货</a></li>
+<li><a href="#%E4%B8%8B%E8%BD%BD%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E6%BA%90%E7%A0%81">下载内核驱动源码</a></li>
+<li><a href="#%E5%BC%80%E5%A7%8B%E7%BC%96%E8%AF%91">开始编译</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%B7%E5%85%A5%E5%86%85%E6%A0%B8">刷入内核</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/langchain-chatglm-ge-ren-bu-shu/">
+              <h3 class="post-title">
+                langchain-ChatGLM 个人部署
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

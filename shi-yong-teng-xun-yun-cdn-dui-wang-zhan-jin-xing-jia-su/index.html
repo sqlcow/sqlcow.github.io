@@ -1,0 +1,278 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>使用腾讯云cdn对网站进行加速 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="使用腾讯云cdn对网站进行加速 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="曾经用的是七牛云，但是因为服务器是腾讯云的，所以这里另写一篇文章使用腾讯云部署
+
+使用腾讯云cdn对网站进行加速
+
+一年以前立过一个flag，当时还在用typecho编写博客，动态发布博客的方式对于cdn来说很不友好
+也是在那个时候，决定要..." />
+    <meta name="keywords" content="前端" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              使用腾讯云cdn对网站进行加速
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/qd/" class="post-tag">
+                  # 前端
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620152348788.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>曾经用的是七牛云，但是因为服务器是腾讯云的，所以这里另写一篇文章使用腾讯云部署</p>
+<!-- more -->
+<h1 id="使用腾讯云cdn对网站进行加速">使用腾讯云cdn对网站进行加速</h1>
+<blockquote>
+<p>一年以前立过一个flag，当时还在用typecho编写博客，动态发布博客的方式对于cdn来说很不友好</p>
+<p>也是在那个时候，决定要更换的hexo博客，但是换好了之后便开始了长达一年的摆烂。</p>
+<p>现在记录一下配置cdn的过程，尽量简短为要。</p>
+</blockquote>
+<h2 id="购买cdn资源">购买cdn资源</h2>
+<p>推荐良心云</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620152348788.png" alt="image-20230620152348788" loading="lazy"></figure>
+<p>既然用了cdn，那就免得回源站了，直接用腾讯云的存储桶作为网站根目录</p>
+<h2 id="配置cdn">配置cdn</h2>
+<p>首先来到静态网站界面，开启存储桶的静态网站</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155437036.png" alt="image-20230620155437036" loading="lazy"></figure>
+<p>然后源站回源策略改为</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155527580.png" alt="image-20230620155527580" loading="lazy"></figure>
+<p>访问http://blog.sqlcow.com/完美打开</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155549045.png" alt="image-20230620155549045" loading="lazy"></figure>
+<blockquote>
+<p>后记：附上之前写的文章一篇，为正常方式配置七牛云cdn</p>
+</blockquote>
+<blockquote>
+<p>1、创建存储空间</p>
+</blockquote>
+<figure data-type="image" tabindex="5"><img src="https://img-blog.csdnimg.cn/img_convert/eb8e935e30986bea2492c8020f5f5f9b.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>2、添加域名</p>
+</blockquote>
+<figure data-type="image" tabindex="6"><img src="https://img-blog.csdnimg.cn/img_convert/78bac1996859d693981b973f6618e12f.png" alt="img" loading="lazy"></figure>
+<p><strong>修改以下两个内容，其他都使用默认的</strong></p>
+<figure data-type="image" tabindex="7"><img src="https://img-blog.csdnimg.cn/img_convert/93bc5537c434af6bcec72b053613fbea.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>3、复制 <code>CNAME</code> 记录值</p>
+</blockquote>
+<figure data-type="image" tabindex="8"><img src="https://img-blog.csdnimg.cn/img_convert/7658412fe1d28016e2dcb6c18b5ff5ad.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>4、解析到域名</p>
+</blockquote>
+<figure data-type="image" tabindex="9"><img src="https://img-blog.csdnimg.cn/img_convert/bb6d9feea957c17182511bc2c29a480e.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>5、回到七牛云后台状态看到状态变为了<code>成功</code></p>
+</blockquote>
+<figure data-type="image" tabindex="10"><img src="https://img-blog.csdnimg.cn/img_convert/6721d9217a6393189a185def1ee0146e.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>6、点击域名后面的<code>配置</code>，申请七牛云的免费<a href="https://so.csdn.net/so/search?q=SSL&amp;spm=1001.2101.3001.7020">SSL</a>证书</p>
+</blockquote>
+<figure data-type="image" tabindex="11"><img src="https://img-blog.csdnimg.cn/img_convert/531e320f933dac74e79ef296e393dc3b.png" alt="img" loading="lazy"></figure>
+<p><strong>找到 <code>HTTPS配置</code>，点击右侧的<code>修改配置</code></strong></p>
+<figure data-type="image" tabindex="12"><img src="https://img-blog.csdnimg.cn/img_convert/56433c97ecbab475168144d7ceb4de98.png" alt="img" loading="lazy"></figure>
+<p><strong>依次点击以下内容，申请七牛云的免费证书</strong></p>
+<figure data-type="image" tabindex="13"><img src="https://img-blog.csdnimg.cn/img_convert/69ec66038b490ad124c959941469ed76.png" alt="img" loading="lazy"></figure>
+<p><strong>输入正确的登陆密码后，申请免费证书请求自动提交，耐心等待15分钟左右即可使用HTTPS访问</strong></p>
+<figure data-type="image" tabindex="14"><img src="https://img-blog.csdnimg.cn/img_convert/9cbe37737d98ded4879e58633ad80da6.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>7、测试访问</p>
+</blockquote>
+<p><strong>设置为默认域名并上传一个文件，用来测试访问</strong></p>
+<figure data-type="image" tabindex="15"><img src="https://img-blog.csdnimg.cn/img_convert/f52bfe05d028dd38a91d5ba4f44039da.png" alt="img" loading="lazy"></figure>
+<p><strong>复制外链</strong></p>
+<figure data-type="image" tabindex="16"><img src="https://img-blog.csdnimg.cn/img_convert/341f385158737e7d12d6242bd4ae4cb9.png" alt="img" loading="lazy"></figure>
+<p><strong>测试访问</strong></p>
+<figure data-type="image" tabindex="17"><img src="https://img-blog.csdnimg.cn/img_convert/97d6f9f86b704a03382800e7f0e59983.png" alt="img" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BD%BF%E7%94%A8%E8%85%BE%E8%AE%AF%E4%BA%91cdn%E5%AF%B9%E7%BD%91%E7%AB%99%E8%BF%9B%E8%A1%8C%E5%8A%A0%E9%80%9F">使用腾讯云cdn对网站进行加速</a>
+<ul>
+<li><a href="#%E8%B4%AD%E4%B9%B0cdn%E8%B5%84%E6%BA%90">购买cdn资源</a></li>
+<li><a href="#%E9%85%8D%E7%BD%AEcdn">配置cdn</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/wei-xin-yun-han-shu-kai-fa-chu-ti-yan/">
+              <h3 class="post-title">
+                微信云函数开发初体验
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,336 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>经典问题：十天后星期几？的字典列表写法 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="经典问题：十天后星期几？的字典列表写法 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="有的时候，可以换种写法看问题
+
+问：从键盘接收星期几（星期1/星期2)，输出10天之后是星期几
+
+错误写法❌
+全用的if
+因为输入的星期几都有一个固定的输出，直接全用if好了
+
+score = input(“请输入星期几：”)
+if sco..." />
+    <meta name="keywords" content="python" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              经典问题：十天后星期几？的字典列表写法
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/python/" class="post-tag">
+                  # python
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://sqlcow.github.io/post-images/jing-dian-wen-ti-shi-tian-hou-xing-qi-ji-de-zi-dian-lie-biao-xie-fa.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>有的时候，可以换种写法看问题</p>
+<!-- more -->
+<p>问：从键盘接收星期几（星期1/星期2)，输出10天之后是星期几</p>
+<ul>
+<li>错误写法❌<br>
+全用的if<br>
+因为输入的星期几都有一个固定的输出，直接全用if好了</li>
+</ul>
+<pre><code class="language-python">score = input(“请输入星期几：”)
+if score == '星期一'：
+	print(‘今天星期四’)
+elif score == '星期二'：
+	print(‘今天星期五’)
+elif score == '星期三'：
+	print(‘今天星期六’)
+elif score == '星期四'：
+	print(‘今天星期日’)
+elif score == '星期五'：
+	print(‘今天星期一’)
+elif score == '星期六'：
+	print(‘今天星期二’)
+elif score == '星期日'：
+	print(‘今天星期三’)
+</code></pre>
+<p>这样写肯定不会错，但是容易挨骂。<s>万一一周有30天呢，总不能写三十个if吧。</s></p>
+<ul>
+<li>字符串切片<br>
+输入形式形如“星期1”。<br>
+如果他不输入星期两字，只输入1那就好办了<br>
+直接(1+10)%7就可以得到结果。<br>
+<strong>思路</strong>:<br>
+1.通过切片，把输入的字符“星期1”变成字符“1”。<br>
+2.然后使用eval函数返回数字“1”。<br>
+3.运算完成以后再转换为字符串拼接回去。</li>
+</ul>
+<pre><code class="language-python">#如果输入形式是星期3
+day=input('enter: ')
+x=eval(day[2:3])#eval()函数会将expression字符串解析为Python代码，并在当前环境中执行。如果切片得到的是一个数字，eval的返回值也是数字。
+y=(x+10)%7
+if y==0:
+    print('10天后是星期日')#这里判断是不是星期四，如果是星期四则直接输出。
+else:
+    print('10天后是星期'+str(y))#字符串拼接，计算结束的数字转换为字符串类型后拼接到后方。
+</code></pre>
+<ul>
+<li>列表索引<br>
+但是如果输入形式不是&quot;星期1&quot;，而是&quot;星期一&quot;。那么无法切片出1来。<br>
+那么我们要将每一个输入和一个数字对应起来<br>
+首先想到的还是<s>一大堆if</s>。<br>
+列表索引恰好可以给每一个“星期一”分配一个数字<br>
+<strong>思路</strong>：<br>
+1.新建一个列表，包括星期一到星期日，通过index函数返回输入的星期几对应的下标。<br>
+2.对下标进行运算。<br>
+3.最后用运算结束后的下标索引列表返回结果</li>
+</ul>
+<pre><code class="language-python">#如果输入形式是星期三
+list1=['星期一','星期二','星期三','星期四','星期五','星期六','星期日']
+day=input('enter: ')
+for x in list1:#按照元素遍历
+    if x==day:
+        print(x)
+        break
+index=list1.index(x)
+y=(index+10)%7
+print(list1[y])
+#愚以为这种写法是最好的了，下面那种按照索引遍历没jb用，正常人根本想不到。
+</code></pre>
+<p>下面是另一种列表遍历方法，按照索引遍历。这种写法的好处在于不用使用index。<s>这也算好处？</s></p>
+<pre><code class="language-python">#如果输入形式是星期三
+list1=['星期一','星期二','星期三','星期四','星期五','星期六','星期日']
+day=input('enter: ')
+for i in range(len(list1)):#按照索引遍历
+    if list1[i]==day:
+        print(list1[i])
+        break
+y=(i+10)%7
+print(list1[y])
+
+</code></pre>
+<ul>
+<li>字典遍历<br>
+如果，如果，如果我是个笨比<br>
+没想到列表索引是一一对应的怎么办<br>
+那么我就要对每一个形如“星期一”的式子分配一个数字。<br>
+那自然不能使用列表，只能用一个字典了。。。</li>
+</ul>
+<pre><code class="language-python">#如果输入形式是星期三
+#利用字典求解
+date = {'星期一': 1, '星期二': 2, '星期三': 3, '星期四': 4, '星期五': 5, '星期六': 6, '星期日': 7}#新建一个字典，给每一个星期几赋一个数字
+day = input(&quot;请输入今天的星期（如：星期一）：&quot;)
+if day in date:#判断输入的day在字典中是否存在    
+     a=date[day]#通过字典中的键来查找值，字典中一个键只能对应一个值，如果需要对应多个值，请使用列表作为值。    
+     b=(a+10)%7    
+     print('十天后'+list(date.keys())[list(date.values()).index(b)])
+#首先使用list(date.values()将所有的值转化为列表，之后查询运算后的结果。再将日期字典（date）中的所有键（即星期几）转换为列表，并获取与上一步中查找到的日期对应的键。这样得到的就是十天后的星期几
+else:    
+    print(&quot;请检查信息或输入形式是否正确&quot;)
+</code></pre>
+<p>但是这种写法也并不是全无是处，字典的遍历是通用写法～<br>
+这样实际上还是使用了列表查询的写法，分别将键和值转换成列表再进行查询。<br>
+但是字典内建函数items可以直接将字典转换为列表。<br>
+下面是使用items的写法</p>
+<pre><code class="language-python"># 定义星期字典
+week_dict = {'星期1': 1, '星期2': 2, '星期3': 3, '星期4': 4, '星期5': 5, '星期6': 6, '星期7': 7}
+
+# 从键盘接收星期几
+weekday = input(&quot;请输入星期几（例如：星期1）：&quot;)
+
+# 获取10天后的星期几
+weekday_num = week_dict.get(weekday)
+weekday_num_after_10_days = (weekday_num + 10) % 7
+weekday_after_10_days = [k for k, v in week_dict.items() if v == weekday_num_after_10_days][0]
+
+# 输出结果
+print(&quot;10天后是&quot; + weekday_after_10_days)
+
+</code></pre>
+<p>字典的items()方法可以返回一个包含字典所有键值对的列表，每个键值对表示为一个元组（key, value）。<br>
+在本题的代码中，我们使用items()方法遍历星期字典中的每一个键值对，从中筛选出符合条件的键（即10天后的星期几），并返回对应的值（即星期几的名称）。具体来说，代码中这行语句的作用是：</p>
+<ul>
+<li>遍历week_dict中的每一个键值对，将键和值分别赋值给变量k和v。</li>
+<li>如果v等于weekday_num_after_10_days，则将k添加到一个列表中。</li>
+<li>由于只有一个符合条件的键，因此返回列表的第一个元素，即10天后的星期几的名称。</li>
+</ul>
+<p>因此，使用items()方法可以方便地遍历字典中的所有键值对，获取对应的键和值，并对它们进行操作和筛选。</p>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/ji-san-ci-xiu-gai-python-zuo-ye-kan-ti-gao-cheng-xu-jian-zhuang-xing/">
+              <h3 class="post-title">
+                记三次修改python作业看提高程序健壮性
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

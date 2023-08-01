@@ -1,0 +1,509 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>从零复现ChatGPT-------对于生成式大语言模型的源码理解（一） | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="从零复现ChatGPT-------对于生成式大语言模型的源码理解（一） | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="本文是一篇对Chatgpt为代表的生成式大语言模型原理的理解，面向的是0基础人群。文章大部分以汉字和图片的形式书写，具体的代码实现仍需要补充。
+
+
+​	时值端午假期。花了三天的时间，参考国内外的一些大模型文章，最终完成了这篇对于生成式大语言..." />
+    <meta name="keywords" content="模型,人工智能,深度学习" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              从零复现ChatGPT-------对于生成式大语言模型的源码理解（一）
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-24
+              </span>
+              <span>
+                19 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/mx/" class="post-tag">
+                  # 模型
+                </a>
+              
+                <a href="https://sqlcow.github.io/rgzn/" class="post-tag">
+                  # 人工智能
+                </a>
+              
+                <a href="https://sqlcow.github.io/sdxx/" class="post-tag">
+                  # 深度学习
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624144637937.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>本文是一篇对Chatgpt为代表的生成式大语言模型原理的理解，面向的是0基础人群。文章大部分以汉字和图片的形式书写，具体的代码实现仍需要补充。</p>
+<!-- more -->
+<blockquote>
+<p>​	时值端午假期。花了三天的时间，参考国内外的一些大模型文章，最终完成了这篇对于生成式大语言模型的源码理解。我把这些参考文献放在开头，如果你有时间，应该去看他们，而不是阅读我的思想糟粕。</p>
+<p>参考文献：</p>
+<ol>
+<li>Jay Alammar写的 图解Word2Vec</li>
+<li>Encoder-Decoder 和 Seq2Seq</li>
+<li>《深度学习中的注意力机制(2017版)》，张俊林</li>
+<li>Transformer原始论文：Attention Is All You Need，</li>
+<li>a_journey_into_math_of_ml/03_transformer_tutorial_1st_part</li>
+<li>《说说NLP中的预训练技术发展史：从Word Embedding到Bert模型》，张俊林</li>
+<li>深度学习：前沿技术-从Attention,Transformer,ELMO,GPT到BERT</li>
+<li>自然语言处理中的Transformer和BERT</li>
+<li>超细节的BERT/Transformer知识点</li>
+<li>《The Illustrated GPT-2 (Visualizing Transformer Language Models)》（翻译版1 翻译版2）</li>
+<li>Transformer结构及其应用详解--GPT、BERT、MT-DNN、GPT-2</li>
+<li>NLP陈博士：从BERT原始论文看BERT的原理及实现</li>
+<li>NLP陈博士：Transformer通用特征提取器</li>
+<li>如何通俗理解Word2Vec</li>
+<li>如何理解反向传播算法BackPropagation</li>
+</ol>
+<p>​	这篇文章的目的不是为了查漏补缺，关于生成式大模型，已经有很多相关的文献存在了，笔者没有能力，也没有那个志向去填补空白。本文更像是一篇学习笔记，以一个大学生的角度去看现在正在流行的chatgpt等生成式大语言模型的技术实现。<br>
+目录：<br>
+<ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%BB%8Ennlm%E5%88%B0word2vec">从NNLM到Word2Vec</a>
+<ul>
+<li><a href="#n-gram%E6%A8%A1%E5%9E%8B%E4%B8%8Ennlm%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B">N-gram模型与NNLM(神经网络语言模型)</a></li>
+<li><a href="#%E6%9E%84%E5%BB%BAword-embeddings%E7%9F%A9%E9%98%B5">构建word embeddings矩阵</a></li>
+<li><a href="#%E5%88%B0word2vec">到Word2Vec</a></li>
+<li><a href="#%E8%AE%AD%E7%BB%83word2vec%E6%A8%A1%E5%9E%8B%E5%8F%AF%E4%BB%A5%E4%B8%8D%E7%9C%8B">训练Word2vec模型（可以不看）</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BB%8Eseq2seq%E5%88%B0seq2seq-with-attention">从Seq2Seq到Seq2Seq with Attention</a>
+<ul>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97">Seq2Seq序列</a>
+<ul>
+<li><a href="#encoder-decoder%E6%A8%A1%E5%9E%8Brnnlstm%E4%B8%8Egru">Encoder-Decoder模型：RNN/LSTM与GRU</a></li>
+</ul>
+</li>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97%E5%88%B0seq2seq-with-attention">Seq2Seq序列到Seq2Seq with Attention</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BC%9F%E5%A4%A7%E7%9A%84transformer">伟大的Transformer！！！</a>
+<ul>
+<li><a href="#transformer%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%B5%81%E7%A8%8B">Transformer模型的流程</a></li>
+<li><a href="#%E7%BC%96%E7%A0%81">编码</a>
+<ul>
+<li><a href="#%E7%BC%96%E7%A0%81%E5%99%A8">编码器</a></li>
+<li><a href="#%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">自注意力机制</a></li>
+<li><a href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">多头注意力机制</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A7%A3%E7%A0%81">解码</a></li>
+</ul>
+</li>
+<li><a href="#elmo%E5%8D%B3embedding-from-language-models">ELMO即“Embedding from Language Models”</a>
+<ul>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8elmo">为什么要用ELMO</a></li>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFfine-tuning">什么是Fine-tuning</a></li>
+<li><a href="#%E5%88%B0gpt">到GPT</a></li>
+<li><a href="#%E5%88%B0bert%E5%8F%8C%E5%90%91transformer%E7%89%88%E7%9A%84gpt">到BERT：双向Transformer版的GPT</a>
+<ul>
+<li><a href="#bert%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%88%9B%E6%96%B0%E7%82%B9masked%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E4%B8%8Enext-sentence-prediction">BERT的两个创新点：Masked语言模型与Next Sentence Prediction</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+</blockquote>
+<ul>
+<li>众所周知：GPT是由一系列模型迭代而来的，具体为：NNLM → Word2Vec → Seq2Seq → Seq2Seq with Attention → Transformer → Elmo → GPT。接下来将逐个介绍下面模型</li>
+</ul>
+<h2 id="从nnlm到word2vec">从NNLM到Word2Vec</h2>
+<p>首先，我们把一句话中的每一个词都表示成了一个词向量，向量的值是多少呢？<br>
+我们会在很多维度给这个词打分，这个分值就是这个词向量。<br>
+那么词向量有什么作用呢？<br>
+可以说向量部分地代表了这个词，通过这个向量，我们可以就计算两个单词之间的相似度了。<br>
+二维向量夹角的公式为：<br>
+<img src="https://sqlcow.github.io/post-images/1687589963713.png" alt="" loading="lazy"></p>
+<p>对于高维的向量，这个公式依旧适用。（线代真的很好用）</p>
+<h3 id="n-gram模型与nnlm神经网络语言模型">N-gram模型与NNLM(神经网络语言模型)</h3>
+<p>​	实际上抖音上面绝大部分的博主对生成式模型的理解都还停留在这一步，既然是生成式模型，字面意思很容易理解：从前一个字推断后一个字出现的可能性。</p>
+<p>​	n-gram模型就是用来推断这个句子出现的可能性的模型。但是前词只与距离它比较近的n个词更加相关(一般n不超过5，所以局限性很大)，如下图：（现在把大象放进冰箱）</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623142609257.png" alt="image-20230623142609257" loading="lazy"></figure>
+<p>​	NNLM是一种基于神经网络的语言模型。它使用一个多层感知器（MLP）或者循环神经网络（RNN）来学习单词之间的非线性关系。NNLM通过将单词表示为连续向量（word embeddings），然后将这些向量输入到神经网络中进行训练，以预测下一个单词。如下图：</p>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623142626110.png" alt="image-20230623142626110"  />
+<h3 id="构建word-embeddings矩阵">构建word embeddings矩阵</h3>
+<p>​	上文提到NNLM通过将单词表示为连续向量（word embeddings），那么我们如何构建词映射矩阵呢？</p>
+<p>​	我们通过找常出现在每个单词附近的词，就能获得它们的映射关系。机制如下：</p>
+<ol>
+<li>先是获取大量文本数据(例如所有维基百科内容)</li>
+<li>然后我们建立一个可以沿文本滑动的窗(例如一个窗里包含三个单词)</li>
+<li>利用这样的滑动窗就能为训练模型生成大量样本数据</li>
+</ol>
+<p>如下图：</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora05d8982149148c52d9ec28b8a6700dd3.png" alt="" loading="lazy"></figure>
+<h3 id="到word2vec">到Word2Vec</h3>
+<p>​	根据上文所说NNLM的机制，已经可以完整的预测一句话了，那我们为什么还需要Word2Vec模型呢？因为我们需要考虑一个单词出现的位置来防止歧义。比如：我爱你和你爱我这其实是两种意思（此刻电脑后台正好唱到这句话<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623144008037.png" alt="image-20230623144008037" loading="lazy">)</p>
+<p>所以我们需要给每一个单词编号，他们是有序的，并不是无序的。最终构建的模型如下图</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623144207533.png" alt="image-20230623144207533" loading="lazy"></figure>
+<p>上述的这种架构被称为连续词袋(CBOW)，</p>
+<h3 id="训练word2vec模型可以不看">训练Word2vec模型（可以不看）</h3>
+<p>​	从上面文章我们得出Word2vec模型既可以保留每个单词的出现位置，又可以保证后一个单词出现的概率最大化，那么我们接下来就需要训练Word2vec模型。</p>
+<p>模型的训练无非分为：数据处理，定义训练方式，测试训练结果反馈。这几个部分。</p>
+<p>​	具体做法是先创建两个矩阵：词嵌入Embedding矩阵、上下文Context矩阵，这两个矩阵在我们的词汇表中嵌入了每个单词。</p>
+<ol>
+<li>
+<p>需要两个单词：输入单词，和上下文单词：（实际邻居词）<br>
+对于输入词，我们查看Embedding矩阵<br>
+对于上下文单词，我们查看Context矩阵</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora74368756e892a696fbad9171bc37f5c9.png" alt="img" loading="lazy"></figure>
+</li>
+<li>
+<p>第二步，计算输入嵌入与每个上下文嵌入的点积</p>
+<p>而这个<strong>点积的结果意味着</strong>『<strong>输入</strong>』<strong>和</strong>『<strong>上下文各个嵌入</strong>』<strong>的各自相似性程度，结果越大代表越相似</strong>。</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorae68a76a5b17995b45d6efdea27f29c51.png" alt="img" loading="lazy"></figure>
+<p>为了将这些分数转化为看起来像概率的东西——比如正值且处于0到1之间，可以通过sigmoid这一逻辑函数转换下。</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora31bfa57cc9c715958a059beb99a24887.png" alt="img" loading="lazy"></figure>
+<p>可以看到taco得分最高，aaron最低，无论是sigmoid操作之前还是之后。</p>
+</li>
+<li>
+<p>第三步，既然未经训练的模型已做出预测，而且我们拥有真实目标标签来作对比，接下来便可以计算模型预测中的误差了，即让目标标签值减去sigmoid分数，得到所谓的损失函数。error = target - sigmoid_scores</p>
+</li>
+<li>
+<p>第四步，我们可以利用这个错误分数来调整not、thou、aaron和taco的嵌入，使下一次做出这一计算时，结果会更接近目标分数</p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoradadb2abaf3a8cfb78fab6d4ad04d1b6f.png" alt="img" loading="lazy"></figure>
+<p>训练步骤到此结束，我们从中得到了这一步所使用词语更好一些的嵌入（not，thou，aaron和taco）</p>
+</li>
+<li>
+<p>第五步，针对下一个相邻样本及其相关的非相邻样本再次执行相同的过程</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora3e46433783c7ebfad45bc9898c723515.png" alt="img" loading="lazy"></figure>
+<p>当我们循环遍历整个数据集多次时，嵌入会继续得到改进。然后我们就可以停止训练过程，丢弃Context矩阵，并使用Embeddings矩阵作为下一项任务的已被训练好的嵌入</p>
+</li>
+</ol>
+<h2 id="从seq2seq到seq2seq-with-attention">从Seq2Seq到Seq2Seq with Attention</h2>
+<h3 id="seq2seq序列">Seq2Seq序列</h3>
+<p>​	这是一个全新的概念，上文我们通过对文本的word embeddings，已经可以做到把文本输入进模型种，那么接下来我们研究的就是如何生成下文：Seq2Seq（Sequence-to-sequence）正如字面意思：输入一个序列，输出另一个序列。</p>
+<h4 id="encoder-decoder模型rnnlstm与gru">Encoder-Decoder模型：RNN/LSTM与GRU</h4>
+<p>​	Encoder-Decoder模型是针对Seq2Seq序列问题的一个模型，这里需要注意Seq2Seq问题的定义很广泛：比如翻译一句话，可以通过Encoder-Decoder模型来解决。</p>
+<p>​	其实仔细想想，所谓的chatgpt不也是用户输入一句话程序输出一句话吗，某种意义上也是用来解决Seq2Seq问题的</p>
+<p>​	但是这里的Encoder-Decoder模型也是一个大概念：从上文我们已经接触到编码的概念，有编码则自然有解码，而这种编码、解码的框架可以称之为Encoder-Decoder，中间一个向量C传递信息，且C的长度是固定的。如下图：</p>
+<p>​	<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624133458362.png" alt="image-20230624133458362" loading="lazy"></p>
+<h3 id="seq2seq序列到seq2seq-with-attention">Seq2Seq序列到Seq2Seq with Attention</h3>
+<p>​	上文那种输出是不是完美无缺的呢？当然不是，我们在编码的时候提到过因为过长文本，会丢失掉一些信息。所以我们引入了一个新的概念叫做：Attention （注意力）</p>
+<p>​	Attention 模型的特点是 Eecoder 不再将整个输入序列编码为固定长度的「中间向量Ｃ」，而是编码成一个向量的序列。引入了Attention的Encoder-Decoder 模型如下图：</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624133716148.png" alt="image-20230624133716148" loading="lazy"></figure>
+<p>​	具体解释为：每个输出的词Y会受到每个输入的整体影响，不是只受某一个词的影响，毕竟整个输入语句是整体而连贯的，但同时每个输入词对每个输出的影响又是不一样的，即每个输出Y受输入的影响权重不一样，而这个权重便是由Attention计算，也就是所谓的注意力分配系数，计算每一项输入对输出权重的影响大小。</p>
+<p>​	从Attention引申而来的Self-Attention实际上就是生成式语言模型的核心概念。</p>
+<hr>
+<h2 id="伟大的transformer">伟大的Transformer！！！</h2>
+<p>​	自从2017年此文《<a href="https://arxiv.org/pdf/1706.03762.pdf">Attention is All You Need</a>》提出来Transformer后，便开启了大规模预训练的新时代，也在历史的长河中一举催生出了BERT这样的大一统模型。从这一段文章往上所有的内容都可以看作是下面的前置知识。</p>
+<p>下面是Transformer的时间轴：</p>
+<p>2018年3月份华盛顿大学提出ELMO、</p>
+<p>2018年6月份OpenAI提出GPT、</p>
+<p>2018年10月份Google提出BERT、</p>
+<p>2019年6月份CMU+google brain提出XLNet。</p>
+<blockquote>
+<p>写到这里，多少有些手足无措的感觉。怎么？这就到Transformer了？7000字就写到Transformer了？</p>
+</blockquote>
+<h3 id="transformer模型的流程">Transformer模型的流程</h3>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624135305488.png" alt="image-20230624135305488" loading="lazy"></figure>
+<ol>
+<li>首先，从编码器输入的句子会先经过一个自注意力层（即self-attention），它会帮助编码器在对每个单词编码时关注输入句子中的的其他单词</li>
+<li>接下来，自注意力层的输出会传递到前馈(feed-forward)神经网络中，每个位置的单词对应的前馈神经网络的结构都完全一样（注意：仅结构相同，但各自的参数不同）</li>
+<li>最后，流入解码器中，解码器中除了也有自注意力层、前馈层外，这两个层之间还有一个编码-解码注意力层，用来关注输入句子的相关部分（和seq2seq模型的注意力作用相似）</li>
+</ol>
+<h3 id="编码">编码</h3>
+<h4 id="编码器">编码器</h4>
+<figure data-type="image" tabindex="11"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624135656549.png" alt="image-20230624135656549" loading="lazy"></figure>
+<p>每个单词都有他独特的位置，一句话中的所有单词是并行进入编码器的，不是依次进入。</p>
+<h4 id="自注意力机制">自注意力机制</h4>
+<p>​	是从Attention引申而来的当模型处理单词“it”时，self-attention允许将“it”和“animal”联系起来。当模型处理每个位置的词时，self-attention允许模型看到句子中其他位置有关联或相似的单词/信息作为辅助线索，以更好地编码当前单词。</p>
+<p>​	回想一下RNN对隐藏状态的处理：将之前的隐藏状态与当前位置的输入结合起来。在Transformer中，自注意力机制则将对其他单词的“理解”融入到当前处理的单词中。</p>
+<p>​	说的直白点就是，你如果要更好的理解句中某个特定单词的含义，你要把它放到整个语境之中去理解，比如通过对上下文的把握。那上下文哪些词对理解该特定词更重要呢？这个重要程度便用所谓的权重表示(权重来自于该词/向量本身跟其他各个词/向量之间的相似度)，权重越大的单词代表与该词越相关(某种意义上可以认为是越相似)，从而对理解该词越重要，然后把该词编码为包括该词在内所有词的加权和。</p>
+<h4 id="多头注意力机制">多头注意力机制</h4>
+<p>​	简而言之，就是希望每个注意力头，只关注最终输出序列中一个子空间，互相独立，其核心思想在于，抽取到更加丰富的特征信息。</p>
+<p>​	它扩展了模型专注于不同位置的能力。编码“Thinking”的时候，虽然最后Z1或多或少包含了其他位置单词的信息，但是它实际编码中把过多的注意力放在“Thinking”单词本身(当然了，这也无可厚非，毕竟自己与自己最相似嘛)且如果我们翻译一个句子，比如“The animal didn’t cross the street because it was too tired”，我们会想知道“it”和哪几个词都最有关联，这时模型的“多头”注意机制会起到作用。</p>
+<h3 id="解码">解码</h3>
+<p>​	由于encoder的decoder组件差不多，所以也就基本知道了解码器的组件是如何工作的。最后，我们直接看下二者是如何协同工作的：</p>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624141857202.png" alt="image-20230624141857202" loading="lazy"></figure>
+<p>​</p>
+<h2 id="elmo即embedding-from-language-models">ELMO即“Embedding from Language Models”</h2>
+<h3 id="为什么要用elmo">为什么要用ELMO</h3>
+<p>​	众所周知，生成式大语言模型是基于Transformer架构的，但是最初的Transformer并不完善，后来通过结合ELMO才产生了大一统模型。</p>
+<p>​	我们之前的提到的Word Embedding本质上是个静态的方式，所谓静态指的是训练好之后每个单词的表达就固定住了，以后使用的时候，不论新句子上下文单词是什么，这个单词的Word Embedding不会跟着上下文场景的变化而改变。但是生活中有很多多义词。</p>
+<p>​	ELMO本身是个根据当前上下文对Word Embedding动态调整的思路根据上下文单词的语义去调整单词的Word Embedding表示。它的网络结构采用了<strong>双层双向LSTM</strong>，双向LSTM可以干啥？可以根据单词的上下文去预测单词，毕竟这比只通过上文去预测单词更准确。ELMO虽然采用的双向结构，但两个方向是彼此独立训练的，从而避免了已知答案找问题。</p>
+<h3 id="什么是fine-tuning">什么是Fine-tuning</h3>
+<ul>
+<li>Fine-tuning：冻结预训练模型的部分卷积层（通常是靠近输入的多数卷积层，因为这些层保留了大量底层信息）甚至不冻结任何网络层，训练剩下的卷积层（通常是靠近输出的部分卷积层）和全连接层</li>
+</ul>
+<p>如下图</p>
+<figure data-type="image" tabindex="13"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624144457781.png" alt="image-20230624144457781" loading="lazy"></figure>
+<ol>
+<li>在源数据集（如ImageNet数据集）上预训练一个神经网络模型，即源模型</li>
+<li>创建一个新的神经网络模型，即目标模型，它复制了源模型上除了输出层外的所有模型设计及其参数<br>
+我们假设这些模型参数包含了源数据集上学习到的知识，且这些知识同样适用于目标数据集<br>
+我们还假设源模型的输出层与源数据集的标签紧密相关，因此在目标模型中不予采用</li>
+<li>为目标模型添加一个输出大小为目标数据集类别个数的输出层，并随机初始化该层的模型参数</li>
+<li>在目标数据集(如椅子数据集)上训练目标模型，我们将从头训练输出层，而其余层的参数都是基于源模型的参数微调得到的</li>
+</ol>
+<h3 id="到gpt">到GPT</h3>
+<p>GPT是“Generative Pre-Training”的简称，从名字看其含义是指的生成式的预训练。<br>
+GPT也采用两阶段过程，第一个阶段是利用语言模型进行预训练，第二阶段通过Fine-tuning的模式解决下游任务</p>
+<p>GPT的预训练过程，其实和ELMO是类似的，主要不同在于两点：</p>
+<ol>
+<li>首先，特征抽取器不是用的LSTM，而是用的Transformer，毕竟它的特征抽取能力要强于LSTM，这个选择很明显是很明智的；</li>
+<li>其次，GPT的预训练虽然仍然是以语言模型作为目标任务，但是采用的是单向的语言模型</li>
+</ol>
+<figure data-type="image" tabindex="14"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624144637937.png" alt="image-20230624144637937" loading="lazy"></figure>
+<p>那么为什么GPT采用的是单向的语言模型呢？</p>
+<blockquote>
+<p>首先，GPT把特征提取器从LSTM换成了更强的transformer，此举已经很是创新了（GPT之后大部分模型都开始用Transformer做特征提取器）<br>
+而此时如果用Transformer的结构提取上下文去做单词预测，那就势必用上Transformer双向结构，而Transformer不像ELMO的双向结构各个方向独立训练而不会see itself，但双向Transformer会出现see itself 啊！<br>
+这可万万不行，因为咱们原本就要训练模型的预测能力，而如果你通过双向非独立的结构都能看到中间要被预测的单词、看到答案了（比如当你用前面的词逐个的预测下一个词的时候，结果你从另一个方向看到每个词，你品、细品，举个例子，预测a b c d f，一开始从左至右逐个预测第二位置 第三位置 第四位置的词：b c d，然后你从右往左预测时，能逐个看到：第四位置 第三位置 第二位置的词：d c b），还做个啥子预测？<br>
+最终两相权衡，才导致GPT放弃Transformer的双向结构，改用Transformer的单向结构，此举也决定了GPT更适合根据已有文本然后生成下文的任务，要不它叫生成式模型呢</p>
+</blockquote>
+<h3 id="到bert双向transformer版的gpt">到BERT：双向Transformer版的GPT</h3>
+<p>GPT是使用「单向的Transformer Decoder模块」构建的，而 BERT则是通过「双向的Transformer Encoder 模块」构建的</p>
+<p>BERT综合了ELMO的双向优势与GPT的Transformer特征提取优势，即关键就两点</p>
+<ul>
+<li>第一点是特征抽取器采用Transformer</li>
+<li>第二点是预训练的时候采用双向语言模型</li>
+</ul>
+<h4 id="bert的两个创新点masked语言模型与next-sentence-prediction">BERT的两个创新点：Masked语言模型与Next Sentence Prediction</h4>
+<p>​	Masked Language Model（MLM）：所谓MLM是指在训练的时候随即从输入预料上mask掉一些单词，然后通过的上下文预测该单词，该任务非常像训练一个中学生做完形填空的能力。</p>
+<p>​	Next Sentence Prediction，其任务是判断句子B是否是句子A的下文，如果是的话输出’IsNext‘，否则输出’NotNext‘，这个关系保存在BERT输入表示图中的[CLS]符号中。</p>
+<h2 id="总结">总结</h2>
+<blockquote>
+<p>​	早期的NLP模型基于规则解决问题，比如专家系统，这种方式扩展性差，因为无法通过人来书写所有规则。<br>
+之后提出了基于统计学的自然语言处理，早期主要是基于浅层机器学习解决NLP问题。例如，通过马尔科夫模型获得语言模型，通过条件随机场CRF进行词性标注。如果你去看StandFord的NLP工具，里面处理问题的早期方法，都是这类方法。<br>
+当深度学习在图像识别领域得到快速发展时，人们也开始将深度学习应用于NLP领域。<br>
+​	首先是Word Embedding。它可以看成是对『单词特征』提取得到的产物，它也是深度学习的副产物。随后，人们又提出了Word2Vec，GloVe等类似预训练的词向量，作为对单词的特征抽象，输入深度学习模型。</p>
+<p>​	其次是RNN。RNN使得神经网络具有时序的特性，这种特性非常适合解决NLP这种词与词之间有顺序的问题。但是，深度学习存在梯度消失问题，这在RNN中尤其明显，于是人们提出了LSTM/GRU等技术，以解决这种梯度消失问题。在2018年以前，LSTM和GRU在NLP技术中占据了绝对统治地位</p>
+<p>​	当时RNN有个致命的问题，就是训练慢，无法并行处理，这限制了其发展。于是人们想到了是否可以用CNN替代RNN，以解决这个问题。于是人们提出了用1D CNN来解决NLP问题。但是这种方式也有个明显问题，就是丢掉了RNN的时序优势。</p>
+<p>​	除了时序问题，我们还不得不提另外一个关键问题，即注意力Attention。Attention最早用于图像识别领域，然后再被用于NLP领域。</p>
+<p>​	有了Attention技术，我们急需新技术既可以保证并行处理，又可以解决时序问题。于是Transformer腾空出世。它也是BERT的基础之一。</p>
+<p>​	除此之外，ELMO提出的预训练双向语言模型以及GPT提出的单向Tranformer也是最新双向Transformer发展的基础，在《Attention Is All You Need》一文，Transformer上升到另外一个高度。</p>
+<p>​	BERT正是综合以上这些优势提出的方法（预训练 + Fine-Tuning + 双向Transformer，再加上其两个创新点：Masked语言模型、Next Sentence Prediction），可以解决NLP中大部分问题。</p>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%BB%8Ennlm%E5%88%B0word2vec">从NNLM到Word2Vec</a>
+<ul>
+<li><a href="#n-gram%E6%A8%A1%E5%9E%8B%E4%B8%8Ennlm%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B">N-gram模型与NNLM(神经网络语言模型)</a></li>
+<li><a href="#%E6%9E%84%E5%BB%BAword-embeddings%E7%9F%A9%E9%98%B5">构建word embeddings矩阵</a></li>
+<li><a href="#%E5%88%B0word2vec">到Word2Vec</a></li>
+<li><a href="#%E8%AE%AD%E7%BB%83word2vec%E6%A8%A1%E5%9E%8B%E5%8F%AF%E4%BB%A5%E4%B8%8D%E7%9C%8B">训练Word2vec模型（可以不看）</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BB%8Eseq2seq%E5%88%B0seq2seq-with-attention">从Seq2Seq到Seq2Seq with Attention</a>
+<ul>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97">Seq2Seq序列</a>
+<ul>
+<li><a href="#encoder-decoder%E6%A8%A1%E5%9E%8Brnnlstm%E4%B8%8Egru">Encoder-Decoder模型：RNN/LSTM与GRU</a></li>
+</ul>
+</li>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97%E5%88%B0seq2seq-with-attention">Seq2Seq序列到Seq2Seq with Attention</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BC%9F%E5%A4%A7%E7%9A%84transformer">伟大的Transformer！！！</a>
+<ul>
+<li><a href="#transformer%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%B5%81%E7%A8%8B">Transformer模型的流程</a></li>
+<li><a href="#%E7%BC%96%E7%A0%81">编码</a>
+<ul>
+<li><a href="#%E7%BC%96%E7%A0%81%E5%99%A8">编码器</a></li>
+<li><a href="#%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">自注意力机制</a></li>
+<li><a href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">多头注意力机制</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A7%A3%E7%A0%81">解码</a></li>
+</ul>
+</li>
+<li><a href="#elmo%E5%8D%B3embedding-from-language-models">ELMO即“Embedding from Language Models”</a>
+<ul>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8elmo">为什么要用ELMO</a></li>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFfine-tuning">什么是Fine-tuning</a></li>
+<li><a href="#%E5%88%B0gpt">到GPT</a></li>
+<li><a href="#%E5%88%B0bert%E5%8F%8C%E5%90%91transformer%E7%89%88%E7%9A%84gpt">到BERT：双向Transformer版的GPT</a>
+<ul>
+<li><a href="#bert%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%88%9B%E6%96%B0%E7%82%B9masked%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E4%B8%8Enext-sentence-prediction">BERT的两个创新点：Masked语言模型与Next Sentence Prediction</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/ji-yu-cnn-juan-ji-shen-jing-wang-luo-shi-xian-de-shou-xie-shu-zi-shi-bie/">
+              <h3 class="post-title">
+                基于cnn卷积神经网络实现的手写数字识别
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2023使用Discuz Q论坛系统搭建三端（h5，小程序，pc）折腾踩坑总结 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="2023使用Discuz Q论坛系统搭建三端（h5，小程序，pc）折腾踩坑总结 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="当时是为了挑战杯才弄的论坛小程序，discuz！和discuzq是代表了一个时代的论坛程序，现在英雄垂暮。
+
+
+阅读此文前提：
+
+本文所有安装搭建流程基于官方安装文档宝塔面板。请先仔细阅读官方文档，再来阅读本文。
+官方文档有两个版本，请先搞..." />
+    <meta name="keywords" content="前端,微信小程序" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              2023使用Discuz Q论坛系统搭建三端（h5，小程序，pc）折腾踩坑总结
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/qd/" class="post-tag">
+                  # 前端
+                </a>
+              
+                <a href="https://sqlcow.github.io/wxxs/" class="post-tag">
+                  # 微信小程序
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://sqlcow.github.io/post-images/2023-shi-yong-discuz-q-lun-tan-xi-tong-da-jian-san-duan-h5xiao-cheng-xu-pczhe-teng-cai-keng-zong-jie.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>当时是为了挑战杯才弄的论坛小程序，discuz！和discuzq是代表了一个时代的论坛程序，现在英雄垂暮。</p>
+<!-- more -->
+<blockquote>
+<p>阅读此文前提：</p>
+<ul>
+<li>本文所有安装搭建流程基于官方安装文档宝塔面板。请先仔细阅读官方文档，再来阅读本文。</li>
+<li>官方文档有两个版本，请先搞清楚你看的是哪个版本的文档（肥肠重要）</li>
+<li>本文写于2023年3月30日。</li>
+<li>所有的踩坑均已经用特殊格式注明</li>
+</ul>
+</blockquote>
+<ul>
+<li>在按照文档安装<code>fileinfo</code> 和 <code>exif</code> 两个扩展以后，请<strong>重启php服务</strong>，否则安装程序不会识别</li>
+<li>discuz系统的迁移只能重新安装新系统，或者重新运行安装程序后覆盖配置，直接覆盖配置<strong>会导致无法上传图片</strong></li>
+<li>宝塔面板早期安装的Php7.3是独立编译zip扩展，后续安装及升级是整合编译的，导致升级后会重复加载zip模块.<br>
+为避免这个错误，后面的PHP就<strong>不再单独编译ZIP扩展</strong>了。<br>
+然后呢，PHP  7.3.8，ZIP 模块不再整合了，在面板配置中却没有安装ZIP扩展的选择。<br>
+这样新安装php7.3就会出现phpzip丢失的问题<br>
+但是ZIP扩展本来就包含在软件包里,解决这个问题,只需要手动进行添加即可.<br>
+SSH登录Linux服务器，先进入<code>php73</code>的扩展安装目录(因为php扩展里已经下载好zip扩展文件所以不用再自行下载了,直接安装)</li>
+</ul>
+<pre><code>cd /www/server/php/73/src/ext/zip/
+/www/server/php/73/bin/phpize
+./configure --with-php-config=/www/server/php/73/bin/php-config
+make
+make install
+</code></pre>
+<p>安装好zip扩展,还需要在PHP配置文件中启用.<br>
+在php.ini中添加这一行:</p>
+<pre><code>extension = zip.so
+</code></pre>
+<ul>
+<li>是<strong>删除禁用</strong><code>putenv</code>、<code>readlink</code>、<code>symlink</code>、<code>shell_exec</code> 函数，不是<strong>删除</strong>。<br>
+php配置完成以后，设置伪静态，更改运行目录，设置gzip。<br>
+访问 <code>http://&lt;绑定网站的域名名称&gt;/dl.php</code><br>
+设置定时任务</li>
+</ul>
+<pre><code>sudo -u www /usr/bin/php /www/wwwroot/&lt;网站主目录&gt;/disco schedule:run
+</code></pre>
+<h2 id="小程序h5构建">小程序/h5构建</h2>
+<p>旧版官方文档提供了两种构建方式，分别是通过HBuilderX和npm。<br>
+但是这是过时的。</p>
+<ul>
+<li>新版discuz小程序<strong>仅支持使用npm构建</strong>。如果你使用HBuilderX构建，会直接提示编译失败。</li>
+<li>小程序对npm的版本有着严格的要求。严格限制<code>node: 14.x.x</code> 版本与 <code>npm: 6.14.</code>。如果你<strong>已经安装了高版本的npm</strong>，无法安装依赖文件。<br>
+解决方案：<br>
+step1.在官网重新下载node: 14.x.x.<br>
+step2.使用控制面板卸载高版本已安装的node，并安装刚刚下载的旧版本node<br>
+step3.执行</li>
+</ul>
+<pre><code>npm uninstall -g npm  # 全局卸载npm，默认卸载高版本npm
+</code></pre>
+<p>step4.再次执行</p>
+<pre><code>npm uninstall -g npm  # 很玄学，但是再次执行卸载的确会更新旧版本npm
+</code></pre>
+<p>当你使用了正确的npm版本安装sass依赖时由于国内的网络问题，<strong>需要更换镜像源</strong>否则会爆红</p>
+<ul>
+<li>执行</li>
+</ul>
+<pre><code>npm config set sass_binary_site=https://npm.taobao.org/mirrors/node-sass
+npm install
+</code></pre>
+<p>如果你是按照官方旧版文档安装的，那么当你成功安装所有依赖，开始构建小程序时。按照官方给出的命令，依旧会报错，不要惊慌，官方偷偷的更改了构建命令<br>
++</p>
+<pre><code>npm run build:weapp
+</code></pre>
+<p>是新版的构建命令</p>
+<p>至此，小程序构建完成，在dist目录下可以找到构建好的微信小程序源码，并且可以进行源码级调试<br>
+但上传时会提示：<strong>单个分包/主包大小不能超过 2M</strong>，因此上传失败。<br>
+构建discuz论坛系统过程中最大的坑就在这里。<br>
+<strong>事实上，无论是新版文档还是旧版文档，能安装成功的最新版本是3.0.6。而这个版本，无论是小程序还是pc都已被官方弃用。官方已经在论坛中发布了discuz的全新4.2版本，以及免编译的小程序源码。discuz也更新成了单圈版本(用户为站长粉丝)和多圈版本(用户为数据粉丝)。而这些，在官方文档中，只字未提。</strong></p>
+<h2 id="新版构建">新版构建</h2>
+<p>所以可以简化小程序的构建流程为一步：<strong>下载论坛内官方提供的源码并上传到自己的账号上。</strong></p>
+<ul>
+<li>如果你已经安装了3.0.6版本的pc版，想升级官方提供的4.2react版，请注意：官方提供了两个升级包，请下载覆盖安装版，文件大小为<strong>31M</strong>。并且在<strong>网站目录</strong>下执行官方提供的升级命令，否则会出现<strong>数据库链接失败</strong>。</li>
+</ul>
+<h2 id="后记">后记</h2>
+<p>人生没有白走的路，多钻研，多动手才能实现目标。在此次构建过程中，尽管途中对npm进行了一系列操作（或者尝试了HBuilderX)，实际上都是无效的。但是，每一次的失败，都在通往成功。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%B0%8F%E7%A8%8B%E5%BA%8Fh5%E6%9E%84%E5%BB%BA">小程序/h5构建</a></li>
+<li><a href="#%E6%96%B0%E7%89%88%E6%9E%84%E5%BB%BA">新版构建</a></li>
+<li><a href="#%E5%90%8E%E8%AE%B0">后记</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/xiao-mi-12proxiao-mi-ping-ban-5-ge-ren-wan-mei-diao-jiao-fang-an/">
+              <h3 class="post-title">
+                小米12pro，小米平板5个人完美调教方案
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

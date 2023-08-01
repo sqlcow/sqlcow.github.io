@@ -1,0 +1,438 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>langchain-ChatGLM 个人部署 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="langchain-ChatGLM 个人部署 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="langchain是一种调用大模型的工具，这里主要用来生成提示词，实现本地知识库。也就是对大模型的知识注入。
+
+[TOC]
+windows系统部署
+
+硬件环境
++ ChatGLM-6B 模型硬件需求
+注：如未将模型下载至本地，请执行前检查$..." />
+    <meta name="keywords" content="模型,人工智能" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              langchain-ChatGLM 个人部署
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                6 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/mx/" class="post-tag">
+                  # 模型
+                </a>
+              
+                <a href="https://sqlcow.github.io/rgzn/" class="post-tag">
+                  # 人工智能
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110302050.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>langchain是一种调用大模型的工具，这里主要用来生成提示词，实现本地知识库。也就是对大模型的知识注入。</p>
+<!-- more -->
+<p>[TOC]</p>
+<h2 id="windows系统部署">windows系统部署</h2>
+<blockquote>
+<p>硬件环境</p>
+<p>+ ChatGLM-6B 模型硬件需求</p>
+<p>注：如未将模型下载至本地，请执行前检查<code>$HOME/.cache/huggingface/</code>文件夹剩余空间，模型文件下载至本地需要 15 GB 存储空间。</p>
+<table>
+<thead>
+<tr>
+<th><strong>量化等级</strong></th>
+<th><strong>最低 GPU 显存</strong>（推理）</th>
+<th><strong>最低 GPU 显存</strong>（高效参数微调）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16（无量化）</td>
+<td>13 GB</td>
+<td>14 GB</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>8 GB</td>
+<td>9 GB</td>
+</tr>
+<tr>
+<td>INT4</td>
+<td>6 GB</td>
+<td>7 GB</td>
+</tr>
+</tbody>
+</table>
+<p>- Embedding 模型硬件需求</p>
+<p>本项目中选用的 Embedding 模型 [GanymedeNil/text2vec-large-chinese](<img src="file:///C:%5CUsers%5C26237%5CAppData%5CRoaming%5CTencent%5CQQTempSys%25W@GJ$ACOF(TYDYECOKVDYB.png)https://huggingface.co/GanymedeNil/text2vec-large-chinese/tree/main" alt="img" loading="lazy"> 约占用显存 3GB，也可修改为在 CPU 中运行。</p>
+</blockquote>
+<h3 id="安装anaconda和pytorch">安装anaconda和pytorch</h3>
+<h4 id="安装anaconda">安装anaconda</h4>
+<p>默认安装即可</p>
+<p><a href="https://www.anaconda.com/">Anaconda 官方下载地址| The World’s Most Popular Data Science Platform</a></p>
+<p>打开anaconda powershell prompt</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230531231014158.png" alt="image-20230531231014158" loading="lazy"></figure>
+<h4 id="安装pytorch">安装pytorch</h4>
+<p>在命令行窗口中执行下面代码，查看cuda版本</p>
+<pre><code class="language-bash">nvidia-smi
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="C:/Users/26237/AppData/Roaming/Typora/typora-user-images/image-20230601104450856.png" alt="image-20230601104450856" loading="lazy"></figure>
+<p>可见我的CUDA版本为12.0，接下来要根据这个版本的CUDA下载pytorch</p>
+<p>创建一个虚拟环境</p>
+<p>执行下面代码</p>
+<pre><code class="language-python">conda create -n PyTorch python=3.8
+</code></pre>
+<p>然后按y ，继续安装所需的各种依赖包。</p>
+<p>完成之后，输入</p>
+<pre><code class="language-python">conda info --envs
+</code></pre>
+<p>查看自己安装过的环境，如下图。</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601105848130.png" alt="image-20230601105848130" loading="lazy"></figure>
+<h5 id="替换aconda软件源为清华源并安装">替换aconda软件源为清华源并安装。</h5>
+<pre><code class="language-python">conda config --set show_channel_urls yes
+</code></pre>
+<p>输入如上代码之后在C:\Users\xxx中看到.condarc文件</p>
+<p>打开这个文件并修改文件内容为</p>
+<pre><code>channels:
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+</code></pre>
+<p>保存关闭之后执行下面命令刷新缓存。</p>
+<pre><code>Anaconda promptconda clean
+</code></pre>
+<p>打开pytorch官网，即可看到下图，官网会自动根据你的电脑，显示的即是你可安装的CUDA版本，并给出安装命令。</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110302050.png" alt="image-20230601110302050" loading="lazy"></figure>
+<p>复制官网给出的安装命令</p>
+<pre><code class="language-python">pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+</code></pre>
+<p>进入刚刚创建的环境</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110611012.png" alt="image-20230601110611012" loading="lazy"></figure>
+<p>执行安装命令即可</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110730024.png" alt="image-20230601110730024" loading="lazy">等待安装完成。</p>
+<h5 id="验证安装是否成功">验证安装是否成功</h5>
+<p>依次执行</p>
+<pre><code class="language-python">pip list
+python 
+imoprt pytorch
+torch.cuda.is_available()
+</code></pre>
+<p>如下图这两个地方即为安装成功</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601112525725.png" alt="image-20230601112525725" loading="lazy"></figure>
+<p>接下来的所有操作都要在这个环境中进行</p>
+<h4 id="安装python">安装python</h4>
+<p>conda默认自带python，以防万一，这里查看一下python版本</p>
+<p>输入下面代码</p>
+<pre><code class="language-python">python --version
+</code></pre>
+<p>查看python版本。python版本在3.8及以上都可以。</p>
+<pre><code class="language-python"># 如果低于这个版本，可使用conda安装环境
+conda create -p /这里填写自定义的路径/env_name python=3.8
+</code></pre>
+<h3 id="安装多环境jupyter">安装多环境jupyter</h3>
+<ol>
+<li>主环境中(root)安装nb_conda: <code>conda install nb_conda</code></li>
+<li>切换到准备的安装jupyter notebook的环境中: <code>conda activate environment_name</code></li>
+<li>安装ipykernel: <code>conda install ipykernel</code></li>
+<li>重启jupyter notebook即可，如果不行可以重新进入当前环境(environment_name)中: conda activate environment_name输入:</li>
+</ol>
+<pre><code class="language-powershell">conda install jupyter notebook
+</code></pre>
+<h3 id="安装依赖">安装依赖</h3>
+<h4 id="拉取仓库">拉取仓库</h4>
+<pre><code class="language-bash">git clone https://github.com/imClumsyPanda/langchain-ChatGLM.git
+</code></pre>
+<p>如下图</p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601092622946.png" alt="image-20230601092622946" loading="lazy"></figure>
+<ul>
+<li>进入仓库目录</li>
+</ul>
+<pre><code class="language-bash">cd langchain-ChatGLM
+</code></pre>
+<ul>
+<li>安装依赖，依次执行下面代码</li>
+</ul>
+<pre><code class="language-pytho">pip install -r requirements.txt
+pip3 install -U gradio
+pip3 install modelscope
+</code></pre>
+<p><strong>注意：这一步要关掉所有代理服务器，不然会报错如下图</strong></p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601093050044.png" alt="image-20230601093050044" loading="lazy"></figure>
+<p>如果下载速度过慢</p>
+<p>执行</p>
+<pre><code class="language-python">pip install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+pip3 install -U gradio -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+pip3 install modelscope -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+</code></pre>
+<p>使用阿里版本镜像源下载。穿上草鞋，飞一般的感觉。</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601094002936.png" alt="image-20230601094002936" loading="lazy"></figure>
+<p>全部依赖安装完成之后如下图</p>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601095258383.png" alt="image-20230601095258383" loading="lazy"></figure>
+<h3 id="从本地加载chatglm-6b-int4">从本地加载chatglm-6b-int4</h3>
+<h4 id="安装git-lfs">安装Git LFS</h4>
+<p>在<a href="https://git-lfs.github.com/">git-lfs.github.com</a> 下载并安装</p>
+<p>验证安装成功</p>
+<pre><code class="language-bash">git lfs install
+</code></pre>
+<p>如下图即为安装成功<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601120328041.png" alt="image-20230601120328041" loading="lazy"></p>
+<h4 id="下载模型实现">下载模型实现</h4>
+<p>在根目录git bash</p>
+<p>输入</p>
+<pre><code class="language-bash">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/THUDM/chatglm-6b
+</code></pre>
+<p>下载完成如下图<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601121103815.png" alt="image-20230601121103815" loading="lazy"></p>
+<h4 id="下载模型本体">下载模型本体</h4>
+<p>这里使用chatglm-6b-int4量化过的模型<a href="https://cloud.tsinghua.edu.cn/d/674208019e314311ab5c/?p=%2Fchatglm-6b-int4&amp;mode=list">清华大学云盘 (tsinghua.edu.cn)</a></p>
+<p><strong>注意：不能直接下载完整模型，对模型的量化同样需要16g显存以上。只能直接下载量化过的模型</strong></p>
+<figure data-type="image" tabindex="11"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601100228946.png" alt="image-20230601100228946" loading="lazy"></figure>
+<p>量化过的模型文件大约4G</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601100335973.png" alt="image-20230601100335973" loading="lazy">静待下载完成</p>
+<p>将下载好的模型本体替换到模型实现中。</p>
+<h4 id="加载模型">加载模型</h4>
+<ul>
+<li>随便找一个文件夹命名为：chatglm-6b-int4（随便什么都行），将下载好的模型文件放进去。<strong>复制文件夹的路径</strong></li>
+<li>修改配置文件：configs/model_config.py，将刚才复制的模型路径添加进去</li>
+</ul>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601101035878.png" alt="image-20230601101035878" loading="lazy"></figure>
+<ul>
+<li>第94行改为true</li>
+</ul>
+<figure data-type="image" tabindex="13"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601121959081.png" alt="image-20230601121959081" loading="lazy"></figure>
+<p>执行cli_demo.py脚本体验<strong>命令行交互</strong>：</p>
+<pre><code class="language-python">python cli_demo.py
+</code></pre>
+<p>或执行 webui.py 脚本体验 <strong>Web 交互</strong></p>
+<pre><code class="language-python">python webui.py
+</code></pre>
+<p>或执行api.py 利用 fastapi 部署 API</p>
+<pre><code class="language-python">python api.py
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#windows%E7%B3%BB%E7%BB%9F%E9%83%A8%E7%BD%B2">windows系统部署</a>
+<ul>
+<li><a href="#%E5%AE%89%E8%A3%85anaconda%E5%92%8Cpytorch">安装anaconda和pytorch</a>
+<ul>
+<li><a href="#%E5%AE%89%E8%A3%85anaconda">安装anaconda</a></li>
+<li><a href="#%E5%AE%89%E8%A3%85pytorch">安装pytorch</a>
+<ul>
+<li><a href="#%E6%9B%BF%E6%8D%A2aconda%E8%BD%AF%E4%BB%B6%E6%BA%90%E4%B8%BA%E6%B8%85%E5%8D%8E%E6%BA%90%E5%B9%B6%E5%AE%89%E8%A3%85">替换aconda软件源为清华源并安装。</a></li>
+<li><a href="#%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85%E6%98%AF%E5%90%A6%E6%88%90%E5%8A%9F">验证安装是否成功</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AE%89%E8%A3%85python">安装python</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AE%89%E8%A3%85%E5%A4%9A%E7%8E%AF%E5%A2%83jupyter">安装多环境jupyter</a></li>
+<li><a href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96">安装依赖</a>
+<ul>
+<li><a href="#%E6%8B%89%E5%8F%96%E4%BB%93%E5%BA%93">拉取仓库</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BB%8E%E6%9C%AC%E5%9C%B0%E5%8A%A0%E8%BD%BDchatglm-6b-int4">从本地加载chatglm-6b-int4</a>
+<ul>
+<li><a href="#%E5%AE%89%E8%A3%85git-lfs">安装Git LFS</a></li>
+<li><a href="#%E4%B8%8B%E8%BD%BD%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0">下载模型实现</a></li>
+<li><a href="#%E4%B8%8B%E8%BD%BD%E6%A8%A1%E5%9E%8B%E6%9C%AC%E4%BD%93">下载模型本体</a></li>
+<li><a href="#%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9E%8B">加载模型</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/shi-yong-teng-xun-yun-cdn-dui-wang-zhan-jin-xing-jia-su/">
+              <h3 class="post-title">
+                使用腾讯云cdn对网站进行加速
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

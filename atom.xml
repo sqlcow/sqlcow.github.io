@@ -1,0 +1,1668 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://sqlcow.github.io</id>
+    <title>SQLCOW</title>
+    <updated>2023-08-01T09:10:59.222Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://sqlcow.github.io"/>
+    <link rel="self" href="https://sqlcow.github.io/atom.xml"/>
+    <subtitle>本博客已迁移到blog.sqlcow.com</subtitle>
+    <logo>https://sqlcow.github.io/images/avatar.png</logo>
+    <icon>https://sqlcow.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2023, SQLCOW</rights>
+    <entry>
+        <title type="html"><![CDATA[博客迁移]]></title>
+        <id>https://sqlcow.github.io/PWTSqncwD/</id>
+        <link href="https://sqlcow.github.io/PWTSqncwD/">
+        </link>
+        <updated>2023-08-01T06:04:41.000Z</updated>
+        <content type="html"><![CDATA[<p>new地址：<a href="http://blog.sqlcow.com">blog.sqlcow.com</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[评价类模型]]></title>
+        <id>https://sqlcow.github.io/vGE-PL5pm/</id>
+        <link href="https://sqlcow.github.io/vGE-PL5pm/">
+        </link>
+        <updated>2023-07-25T12:17:56.000Z</updated>
+        <summary type="html"><![CDATA[<p>这可能是关于评价类模型最全的文档了</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>这可能是关于评价类模型最全的文档了</p>
+<!-- more -->
+<h1 id="层次分析法">层次分析法</h1>
+<ul>
+<li>
+<p>除非题目涉及到主观性评价问题，适合于人的定性判断起重要作用的、对决策结果难于直接准确计量的场合。其他评价类问题一般不用。</p>
+</li>
+<li>
+<p>选择最佳外出旅游地，外出旅游最重视的因素之间的区别：<strong>外出旅游最重视的因素没有方案层，只求权重即可</strong></p>
+</li>
+</ul>
+<ol>
+<li>建立系统的递阶层次结构</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230720173255450.png" alt="image-20230720173255450" loading="lazy"></figure>
+<ol start="2">
+<li>对于同一层次的各元素关于上一层次中某一准则的重要 性进行两两比较，构造两两比较矩阵（判断矩阵）<strong>然后开始运行代码</strong></li>
+</ol>
+<pre><code>disp('请输入判断矩阵A')
+A=input('A=');
+[n,n] = size(A);
+% % % % % % % % % % % % %方法1： 算术平均法求权重% % % % % % % % % % % % %
+Sum_A = sum(A);
+SUM_A = repmat(Sum_A,n,1);
+Stand_A = A ./ SUM_A;
+
+disp('算术平均法求权重的结果为：');
+disp(sum(Stand_A,2)./n)
+% % % % % % % % % % % % %方法2： 几何平均法求权重% % % % % % % % % % % % %
+Prduct_A = prod(A,2);
+Prduct_n_A = Prduct_A .^ (1/n);
+disp('几何平均法求权重的结果为：');
+disp(Prduct_n_A ./ sum(Prduct_n_A))
+% % % % % % % % % % % % %方法3： 特征值法求权重% % % % % % % % % % % % %
+[V,D] = eig(A);
+Max_eig = max(max(D));
+[r,c]=find(D == Max_eig , 1);
+disp('特征值法求权重的结果为：');
+disp( V(:,c) ./ sum(V(:,c)) )
+% % % % % % % % % % % % %下面是计算一致性比例CR的环节% % % % % % % % % % % % %
+CI = (Max_eig - n) / (n-1);
+RI=[0 0.0001 0.52 0.89 1.12 1.26 1.36 1.41 1.46 1.49 1.52 1.54 1.56 1.58 1.59];  %注意哦，这里的RI最多支持 n = 15
+% 这里n=2时，一定是一致矩阵，所以CI = 0，我们为了避免分母为0，将这里的第二个元素改为了很接近0的正数
+CR=CI/RI(n);
+disp('一致性指标CI=');disp(CI);
+disp('一致性比例CR=');disp(CR);
+if CR&lt;0.10
+    disp('因为CR&lt;0.10，所以该判断矩阵A的一致性可以接受!');
+else
+    disp('注意：CR &gt;= 0.10，因此该判断矩阵A需要进行修改!');
+end
+
+</code></pre>
+<ol>
+<li>. 由判断矩阵计算被比较元素对于该准则的相对权重， 并进行一致性检验（检验通过权重才能用）</li>
+<li>根据权重矩阵计算得分，并进行排序（excel）</li>
+</ol>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724100054783.png" alt="image-20230724100054783" loading="lazy"></figure>
+<h1 id="基于熵权法的topsis模型">基于熵权法的Topsis模型</h1>
+<ul>
+<li>能充分利用原始数据的信息</li>
+<li>spsspro中不能使用如ph=7的中间作为优解</li>
+</ul>
+<ol>
+<li>
+<p>第一步：将原始矩阵正向化</p>
+<pre><code>%%  第一步：把数据复制到工作区，并将这个矩阵命名为X
+% （1）在工作区右键，点击新建（Ctrl+N)，输入变量名称为X
+% （2）在Excel中复制数据，再回到Matlab中右键，点击粘贴Excel数据（Ctrl+Shift+V）
+% （3）关掉这个窗口，点击X变量，右键另存为，保存为mat文件（下次就不用复制粘贴了，只需使用load命令即可加载数据）
+% （4）注意，代码和数据要放在同一个目录下哦。
+clear;clc
+load data_water_quality.mat
+
+%%  第二步：判断是否需要正向化
+[n,m] = size(X);
+disp(['共有' num2str(n) '个评价对象, ' num2str(m) '个评价指标']) 
+Judge = input(['这' num2str(m) '个指标是否需要经过正向化处理，需要请输入1 ，不需要输入0：  ']);
+
+if Judge == 1
+    Position = input('请输入需要正向化处理的指标所在的列，例如第2、3、6三列需要处理，那么你需要输入[2,3,6]： '); %[2,3,4]
+    disp('请输入需要处理的这些列的指标类型（1：极小型， 2：中间型， 3：区间型） ')
+    Type = input('例如：第2列是极小型，第3列是区间型，第6列是中间型，就输入[1,3,2]：  '); %[2,1,3]
+    % 注意，Position和Type是两个同维度的行向量
+    for i = 1 : size(Position,2)  %这里需要对这些列分别处理，因此我们需要知道一共要处理的次数，即循环的次数
+        X(:,Position(i)) = Positivization(X(:,Position(i)),Type(i),Position(i));
+    % Positivization是我们自己定义的函数，其作用是进行正向化，其一共接收三个参数
+    % 第一个参数是要正向化处理的那一列向量 X(:,Position(i))   回顾上一讲的知识，X(:,n)表示取第n列的全部元素
+    % 第二个参数是对应的这一列的指标类型（1：极小型， 2：中间型， 3：区间型）
+    % 第三个参数是告诉函数我们正在处理的是原始矩阵中的哪一列
+    % 该函数有一个返回值，它返回正向化之后的指标，我们可以将其直接赋值给我们原始要处理的那一列向量
+    end
+    disp('正向化后的矩阵 X =  ')
+    disp(X)
+end
+%% 作业：在这里增加是否需要算加权
+% 补充一个基础知识：m*n维的矩阵A 点乘 n维行向量B，等于这个A的每一行都点乘B
+% （注意：2017以及之后版本的Matlab才支持，老版本Matlab会报错）
+% % 假如原始数据为：
+%   A=[1, 2, 3;
+%        2, 4, 6] 
+% % 权重矩阵为：
+%   B=[ 0.2, 0.5 ,0.3 ] 
+% % 加权后为：
+%   C=A .* B
+%     0.2000    1.0000    0.9000
+%     0.4000    2.0000    1.8000
+% 类似的，还有矩阵和向量的点除， 大家可以自己试试计算A ./ B
+% 注意，矩阵和向量没有 .- 和 .+ 哦 ，大家可以试试，如果计算A.+B 和 A.-B会报什么错误。
+
+%% 这里补充一个小插曲
+% % 在上一讲层次分析法的代码中，我们可以优化以下的语句：
+% % Sum_A = sum(A);
+% % SUM_A = repmat(Sum_A,n,1);
+% % Stand_A = A ./ SUM_A;
+% % 事实上，我们把第三行换成：Stand_A = A ./ Sum_A; 也是可以的哦 
+% % (再次强调，新版本的Matlab才能运行哦)
+
+%% 第三步：对正向化后的矩阵进行标准化
+Z = X ./ repmat(sum(X.*X) .^ 0.5, n, 1);
+disp('标准化矩阵 Z = ')
+disp(Z)
+
+
+%% 让用户判断是否需要增加权重
+disp(&quot;请输入是否需要增加权重向量，需要输入1，不需要输入0&quot;)
+Judge = input('请输入是否需要增加权重： ');
+if Judge == 1
+    Judge = input('使用熵权法确定权重请输入1，否则输入0： ');
+    if Judge == 1
+        if sum(sum(Z&lt;0)) &gt;0   % 如果之前标准化后的Z矩阵中存在负数，则重新对X进行标准化
+            disp('原来标准化得到的Z矩阵中存在负数，所以需要对X重新标准化')
+            for i = 1:n
+                for j = 1:m
+                    Z(i,j) = [X(i,j) - min(X(:,j))] / [max(X(:,j)) - min(X(:,j))];
+                end
+            end
+            disp('X重新进行标准化得到的标准化矩阵Z为:  ')
+            disp(Z)
+        end
+        weight = Entropy_Method(Z);
+        disp('熵权法确定的权重为：')
+        disp(weight)
+    else
+        disp(['如果你有3个指标，你就需要输入3个权重，例如它们分别为0.25,0.25,0.5, 则你需要输入[0.25,0.25,0.5]']);
+        weight = input(['你需要输入' num2str(m) '个权数。' '请以行向量的形式输入这' num2str(m) '个权重: ']);
+        OK = 0;  % 用来判断用户的输入格式是否正确
+        while OK == 0 
+            if abs(sum(weight) -1)&lt;0.000001 &amp;&amp; size(weight,1) == 1 &amp;&amp; size(weight,2) == m  % 注意，Matlab中浮点数的比较要小心
+                OK =1;
+            else
+                weight = input('你输入的有误，请重新输入权重行向量: ');
+            end
+        end
+    end
+else
+    weight = ones(1,m) ./ m ; %如果不需要加权重就默认权重都相同，即都为1/m
+end
+
+
+%% 第四步：计算与最大值的距离和最小值的距离，并算出得分
+D_P = sum([(Z - repmat(max(Z),n,1)) .^ 2 ] .* repmat(weight,n,1) ,2) .^ 0.5;   % D+ 与最大值的距离向量
+D_N = sum([(Z - repmat(min(Z),n,1)) .^ 2 ] .* repmat(weight,n,1) ,2) .^ 0.5;   % D- 与最小值的距离向量
+S = D_N ./ (D_P+D_N);    % 未归一化的得分
+disp('最后的得分为：')
+stand_S = S / sum(S)
+[sorted_S,index] = sort(stand_S ,'descend')
+
+% A = magic(5)  % 幻方矩阵
+% M = magic(n)返回由1到n^2的整数构成并且总行数和总列数相等的n×n矩阵。阶次n必须为大于或等于3的标量。
+% sort(A)若A是向量不管是列还是行向量，默认都是对A进行升序排列。sort(A)是默认的升序，而sort(A,'descend')是降序排序。
+% sort(A)若A是矩阵，默认对A的各列进行升序排列
+% sort(A,dim)
+% dim=1时等效sort(A)
+% dim=2时表示对A中的各行元素升序排列
+% A = [2,1,3,8]
+% Matlab中给一维向量排序是使用sort函数：sort（A），排序是按升序进行的，其中A为待排序的向量；
+% 若欲保留排列前的索引，则可用 [sA,index] = sort(A,'descend') ，排序后，sA是排序好的向量，index是向量sA中对A的索引。
+% sA  =  8     3     2     1
+% index =  4     3     1     2
+
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072439233.png" alt="image-20230719072439233" loading="lazy"></figure>
+</li>
+<li>
+<p>正向化矩阵标准化</p>
+<p>如果使用熵权法需要把正向矩阵化为非负的</p>
+<p>消除不同指标量纲的影响</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072511807.png" alt="image-20230719072511807" loading="lazy"></figure>
+</li>
+<li>
+<p>计算第j项指标下第i个样本所占的比重，并将其看作相对熵计算中用到的概率（熵权法）</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072724979.png" alt="image-20230719072724979" loading="lazy"></figure>
+</li>
+<li>
+<p>计算第j项指标下第i个样本所占的比重，并将其看作相对熵计算中用到的概率（熵权法）</p>
+</li>
+</ol>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072800405.png" alt="image-20230719072800405" loading="lazy"></figure>
+<ol>
+<li>计算每个指标的信息熵，并计算信息效用值，并归一化得到每个指标的熵权（熵权法）</li>
+</ol>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072834374.png" alt="image-20230719072834374" loading="lazy"></figure>
+<ol start="4">
+<li>
+<p>计算得分并归一化</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072540838.png" alt="image-20230719072540838" loading="lazy"></figure>
+</li>
+</ol>
+<h1 id="灰色关联分析">灰色关联分析</h1>
+<ul>
+<li>
+<p>衡量因素间关联程度的一种方法，当样本个数较少时, 使⽤灰⾊关联分析 。</p>
+</li>
+<li>
+<p>对各项指标的最优值进行现行确定主观性过强</p>
+</li>
+<li>
+<p>分析各个因素对于结果的影响程度，也可以解决随时间变化的综合评价类问题。</p>
+</li>
+</ul>
+<ol>
+<li>画统计图（使用excel）</li>
+</ol>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724101113439.png" alt="image-20230724101113439" loading="lazy"></figure>
+<ol start="2">
+<li>确定分析数列</li>
+</ol>
+<ul>
+<li>母序列：能饭映系统行为特征的数据存到。类似于因变量y</li>
+<li>子序列： 影响系统⾏为的因素组成的数据序列 。类似于⾃变量x</li>
+</ul>
+<ol start="3">
+<li>
+<p>对变量进行预处理</p>
+</li>
+<li>
+<p>计算子序列中各个指标的关联系数</p>
+</li>
+<li>
+<p>定义灰色关联度，比较得出结论</p>
+</li>
+</ol>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724154221203.png" alt="image-20230724154221203" loading="lazy"></figure>
+<h1 id="模糊综合评价">模糊综合评价</h1>
+<ul>
+<li>权重向量矩阵也用到了熵权法，用于评价复杂问题</li>
+</ul>
+<h1 id="总结">总结：</h1>
+<p>！！！！评价指标是关键</p>
+<figure data-type="image" tabindex="11"><img src="https://ucc.alicdn.com/pic/developer-ecology/h3c66y56apbu2_ed4a7126dc3847a2a4558de622728ecf.png" alt="403aab49dd0846a3af70bd245ce24e6d.png" loading="lazy"></figure>
+<p>灵敏度分析</p>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230720182347367.png" alt="image-20230720182347367" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[从零复现ChatGPT-------对于生成式大语言模型的源码理解（一）]]></title>
+        <id>https://sqlcow.github.io/AjVHWV8P1/</id>
+        <link href="https://sqlcow.github.io/AjVHWV8P1/">
+        </link>
+        <updated>2023-06-24T06:53:37.000Z</updated>
+        <summary type="html"><![CDATA[<p>本文是一篇对Chatgpt为代表的生成式大语言模型原理的理解，面向的是0基础人群。文章大部分以汉字和图片的形式书写，具体的代码实现仍需要补充。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>本文是一篇对Chatgpt为代表的生成式大语言模型原理的理解，面向的是0基础人群。文章大部分以汉字和图片的形式书写，具体的代码实现仍需要补充。</p>
+<!-- more -->
+<blockquote>
+<p>​	时值端午假期。花了三天的时间，参考国内外的一些大模型文章，最终完成了这篇对于生成式大语言模型的源码理解。我把这些参考文献放在开头，如果你有时间，应该去看他们，而不是阅读我的思想糟粕。</p>
+<p>参考文献：</p>
+<ol>
+<li>Jay Alammar写的 图解Word2Vec</li>
+<li>Encoder-Decoder 和 Seq2Seq</li>
+<li>《深度学习中的注意力机制(2017版)》，张俊林</li>
+<li>Transformer原始论文：Attention Is All You Need，</li>
+<li>a_journey_into_math_of_ml/03_transformer_tutorial_1st_part</li>
+<li>《说说NLP中的预训练技术发展史：从Word Embedding到Bert模型》，张俊林</li>
+<li>深度学习：前沿技术-从Attention,Transformer,ELMO,GPT到BERT</li>
+<li>自然语言处理中的Transformer和BERT</li>
+<li>超细节的BERT/Transformer知识点</li>
+<li>《The Illustrated GPT-2 (Visualizing Transformer Language Models)》（翻译版1 翻译版2）</li>
+<li>Transformer结构及其应用详解--GPT、BERT、MT-DNN、GPT-2</li>
+<li>NLP陈博士：从BERT原始论文看BERT的原理及实现</li>
+<li>NLP陈博士：Transformer通用特征提取器</li>
+<li>如何通俗理解Word2Vec</li>
+<li>如何理解反向传播算法BackPropagation</li>
+</ol>
+<p>​	这篇文章的目的不是为了查漏补缺，关于生成式大模型，已经有很多相关的文献存在了，笔者没有能力，也没有那个志向去填补空白。本文更像是一篇学习笔记，以一个大学生的角度去看现在正在流行的chatgpt等生成式大语言模型的技术实现。<br>
+目录：<br>
+<ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%BB%8Ennlm%E5%88%B0word2vec">从NNLM到Word2Vec</a>
+<ul>
+<li><a href="#n-gram%E6%A8%A1%E5%9E%8B%E4%B8%8Ennlm%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B">N-gram模型与NNLM(神经网络语言模型)</a></li>
+<li><a href="#%E6%9E%84%E5%BB%BAword-embeddings%E7%9F%A9%E9%98%B5">构建word embeddings矩阵</a></li>
+<li><a href="#%E5%88%B0word2vec">到Word2Vec</a></li>
+<li><a href="#%E8%AE%AD%E7%BB%83word2vec%E6%A8%A1%E5%9E%8B%E5%8F%AF%E4%BB%A5%E4%B8%8D%E7%9C%8B">训练Word2vec模型（可以不看）</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BB%8Eseq2seq%E5%88%B0seq2seq-with-attention">从Seq2Seq到Seq2Seq with Attention</a>
+<ul>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97">Seq2Seq序列</a>
+<ul>
+<li><a href="#encoder-decoder%E6%A8%A1%E5%9E%8Brnnlstm%E4%B8%8Egru">Encoder-Decoder模型：RNN/LSTM与GRU</a></li>
+</ul>
+</li>
+<li><a href="#seq2seq%E5%BA%8F%E5%88%97%E5%88%B0seq2seq-with-attention">Seq2Seq序列到Seq2Seq with Attention</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BC%9F%E5%A4%A7%E7%9A%84transformer">伟大的Transformer！！！</a>
+<ul>
+<li><a href="#transformer%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%B5%81%E7%A8%8B">Transformer模型的流程</a></li>
+<li><a href="#%E7%BC%96%E7%A0%81">编码</a>
+<ul>
+<li><a href="#%E7%BC%96%E7%A0%81%E5%99%A8">编码器</a></li>
+<li><a href="#%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">自注意力机制</a></li>
+<li><a href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6">多头注意力机制</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A7%A3%E7%A0%81">解码</a></li>
+</ul>
+</li>
+<li><a href="#elmo%E5%8D%B3embedding-from-language-models">ELMO即“Embedding from Language Models”</a>
+<ul>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8elmo">为什么要用ELMO</a></li>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFfine-tuning">什么是Fine-tuning</a></li>
+<li><a href="#%E5%88%B0gpt">到GPT</a></li>
+<li><a href="#%E5%88%B0bert%E5%8F%8C%E5%90%91transformer%E7%89%88%E7%9A%84gpt">到BERT：双向Transformer版的GPT</a>
+<ul>
+<li><a href="#bert%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%88%9B%E6%96%B0%E7%82%B9masked%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E4%B8%8Enext-sentence-prediction">BERT的两个创新点：Masked语言模型与Next Sentence Prediction</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+</blockquote>
+<ul>
+<li>众所周知：GPT是由一系列模型迭代而来的，具体为：NNLM → Word2Vec → Seq2Seq → Seq2Seq with Attention → Transformer → Elmo → GPT。接下来将逐个介绍下面模型</li>
+</ul>
+<h2 id="从nnlm到word2vec">从NNLM到Word2Vec</h2>
+<p>首先，我们把一句话中的每一个词都表示成了一个词向量，向量的值是多少呢？<br>
+我们会在很多维度给这个词打分，这个分值就是这个词向量。<br>
+那么词向量有什么作用呢？<br>
+可以说向量部分地代表了这个词，通过这个向量，我们可以就计算两个单词之间的相似度了。<br>
+二维向量夹角的公式为：<br>
+<img src="https://sqlcow.github.io/post-images/1687589963713.png" alt="" loading="lazy"></p>
+<p>对于高维的向量，这个公式依旧适用。（线代真的很好用）</p>
+<h3 id="n-gram模型与nnlm神经网络语言模型">N-gram模型与NNLM(神经网络语言模型)</h3>
+<p>​	实际上抖音上面绝大部分的博主对生成式模型的理解都还停留在这一步，既然是生成式模型，字面意思很容易理解：从前一个字推断后一个字出现的可能性。</p>
+<p>​	n-gram模型就是用来推断这个句子出现的可能性的模型。但是前词只与距离它比较近的n个词更加相关(一般n不超过5，所以局限性很大)，如下图：（现在把大象放进冰箱）</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623142609257.png" alt="image-20230623142609257" loading="lazy"></figure>
+<p>​	NNLM是一种基于神经网络的语言模型。它使用一个多层感知器（MLP）或者循环神经网络（RNN）来学习单词之间的非线性关系。NNLM通过将单词表示为连续向量（word embeddings），然后将这些向量输入到神经网络中进行训练，以预测下一个单词。如下图：</p>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623142626110.png" alt="image-20230623142626110"  />
+<h3 id="构建word-embeddings矩阵">构建word embeddings矩阵</h3>
+<p>​	上文提到NNLM通过将单词表示为连续向量（word embeddings），那么我们如何构建词映射矩阵呢？</p>
+<p>​	我们通过找常出现在每个单词附近的词，就能获得它们的映射关系。机制如下：</p>
+<ol>
+<li>先是获取大量文本数据(例如所有维基百科内容)</li>
+<li>然后我们建立一个可以沿文本滑动的窗(例如一个窗里包含三个单词)</li>
+<li>利用这样的滑动窗就能为训练模型生成大量样本数据</li>
+</ol>
+<p>如下图：</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora05d8982149148c52d9ec28b8a6700dd3.png" alt="" loading="lazy"></figure>
+<h3 id="到word2vec">到Word2Vec</h3>
+<p>​	根据上文所说NNLM的机制，已经可以完整的预测一句话了，那我们为什么还需要Word2Vec模型呢？因为我们需要考虑一个单词出现的位置来防止歧义。比如：我爱你和你爱我这其实是两种意思（此刻电脑后台正好唱到这句话<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623144008037.png" alt="image-20230623144008037" loading="lazy">)</p>
+<p>所以我们需要给每一个单词编号，他们是有序的，并不是无序的。最终构建的模型如下图</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230623144207533.png" alt="image-20230623144207533" loading="lazy"></figure>
+<p>上述的这种架构被称为连续词袋(CBOW)，</p>
+<h3 id="训练word2vec模型可以不看">训练Word2vec模型（可以不看）</h3>
+<p>​	从上面文章我们得出Word2vec模型既可以保留每个单词的出现位置，又可以保证后一个单词出现的概率最大化，那么我们接下来就需要训练Word2vec模型。</p>
+<p>模型的训练无非分为：数据处理，定义训练方式，测试训练结果反馈。这几个部分。</p>
+<p>​	具体做法是先创建两个矩阵：词嵌入Embedding矩阵、上下文Context矩阵，这两个矩阵在我们的词汇表中嵌入了每个单词。</p>
+<ol>
+<li>
+<p>需要两个单词：输入单词，和上下文单词：（实际邻居词）<br>
+对于输入词，我们查看Embedding矩阵<br>
+对于上下文单词，我们查看Context矩阵</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora74368756e892a696fbad9171bc37f5c9.png" alt="img" loading="lazy"></figure>
+</li>
+<li>
+<p>第二步，计算输入嵌入与每个上下文嵌入的点积</p>
+<p>而这个<strong>点积的结果意味着</strong>『<strong>输入</strong>』<strong>和</strong>『<strong>上下文各个嵌入</strong>』<strong>的各自相似性程度，结果越大代表越相似</strong>。</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorae68a76a5b17995b45d6efdea27f29c51.png" alt="img" loading="lazy"></figure>
+<p>为了将这些分数转化为看起来像概率的东西——比如正值且处于0到1之间，可以通过sigmoid这一逻辑函数转换下。</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora31bfa57cc9c715958a059beb99a24887.png" alt="img" loading="lazy"></figure>
+<p>可以看到taco得分最高，aaron最低，无论是sigmoid操作之前还是之后。</p>
+</li>
+<li>
+<p>第三步，既然未经训练的模型已做出预测，而且我们拥有真实目标标签来作对比，接下来便可以计算模型预测中的误差了，即让目标标签值减去sigmoid分数，得到所谓的损失函数。error = target - sigmoid_scores</p>
+</li>
+<li>
+<p>第四步，我们可以利用这个错误分数来调整not、thou、aaron和taco的嵌入，使下一次做出这一计算时，结果会更接近目标分数</p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoradadb2abaf3a8cfb78fab6d4ad04d1b6f.png" alt="img" loading="lazy"></figure>
+<p>训练步骤到此结束，我们从中得到了这一步所使用词语更好一些的嵌入（not，thou，aaron和taco）</p>
+</li>
+<li>
+<p>第五步，针对下一个相邻样本及其相关的非相邻样本再次执行相同的过程</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora3e46433783c7ebfad45bc9898c723515.png" alt="img" loading="lazy"></figure>
+<p>当我们循环遍历整个数据集多次时，嵌入会继续得到改进。然后我们就可以停止训练过程，丢弃Context矩阵，并使用Embeddings矩阵作为下一项任务的已被训练好的嵌入</p>
+</li>
+</ol>
+<h2 id="从seq2seq到seq2seq-with-attention">从Seq2Seq到Seq2Seq with Attention</h2>
+<h3 id="seq2seq序列">Seq2Seq序列</h3>
+<p>​	这是一个全新的概念，上文我们通过对文本的word embeddings，已经可以做到把文本输入进模型种，那么接下来我们研究的就是如何生成下文：Seq2Seq（Sequence-to-sequence）正如字面意思：输入一个序列，输出另一个序列。</p>
+<h4 id="encoder-decoder模型rnnlstm与gru">Encoder-Decoder模型：RNN/LSTM与GRU</h4>
+<p>​	Encoder-Decoder模型是针对Seq2Seq序列问题的一个模型，这里需要注意Seq2Seq问题的定义很广泛：比如翻译一句话，可以通过Encoder-Decoder模型来解决。</p>
+<p>​	其实仔细想想，所谓的chatgpt不也是用户输入一句话程序输出一句话吗，某种意义上也是用来解决Seq2Seq问题的</p>
+<p>​	但是这里的Encoder-Decoder模型也是一个大概念：从上文我们已经接触到编码的概念，有编码则自然有解码，而这种编码、解码的框架可以称之为Encoder-Decoder，中间一个向量C传递信息，且C的长度是固定的。如下图：</p>
+<p>​	<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624133458362.png" alt="image-20230624133458362" loading="lazy"></p>
+<h3 id="seq2seq序列到seq2seq-with-attention">Seq2Seq序列到Seq2Seq with Attention</h3>
+<p>​	上文那种输出是不是完美无缺的呢？当然不是，我们在编码的时候提到过因为过长文本，会丢失掉一些信息。所以我们引入了一个新的概念叫做：Attention （注意力）</p>
+<p>​	Attention 模型的特点是 Eecoder 不再将整个输入序列编码为固定长度的「中间向量Ｃ」，而是编码成一个向量的序列。引入了Attention的Encoder-Decoder 模型如下图：</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624133716148.png" alt="image-20230624133716148" loading="lazy"></figure>
+<p>​	具体解释为：每个输出的词Y会受到每个输入的整体影响，不是只受某一个词的影响，毕竟整个输入语句是整体而连贯的，但同时每个输入词对每个输出的影响又是不一样的，即每个输出Y受输入的影响权重不一样，而这个权重便是由Attention计算，也就是所谓的注意力分配系数，计算每一项输入对输出权重的影响大小。</p>
+<p>​	从Attention引申而来的Self-Attention实际上就是生成式语言模型的核心概念。</p>
+<hr>
+<h2 id="伟大的transformer">伟大的Transformer！！！</h2>
+<p>​	自从2017年此文《<a href="https://arxiv.org/pdf/1706.03762.pdf">Attention is All You Need</a>》提出来Transformer后，便开启了大规模预训练的新时代，也在历史的长河中一举催生出了BERT这样的大一统模型。从这一段文章往上所有的内容都可以看作是下面的前置知识。</p>
+<p>下面是Transformer的时间轴：</p>
+<p>2018年3月份华盛顿大学提出ELMO、</p>
+<p>2018年6月份OpenAI提出GPT、</p>
+<p>2018年10月份Google提出BERT、</p>
+<p>2019年6月份CMU+google brain提出XLNet。</p>
+<blockquote>
+<p>写到这里，多少有些手足无措的感觉。怎么？这就到Transformer了？7000字就写到Transformer了？</p>
+</blockquote>
+<h3 id="transformer模型的流程">Transformer模型的流程</h3>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624135305488.png" alt="image-20230624135305488" loading="lazy"></figure>
+<ol>
+<li>首先，从编码器输入的句子会先经过一个自注意力层（即self-attention），它会帮助编码器在对每个单词编码时关注输入句子中的的其他单词</li>
+<li>接下来，自注意力层的输出会传递到前馈(feed-forward)神经网络中，每个位置的单词对应的前馈神经网络的结构都完全一样（注意：仅结构相同，但各自的参数不同）</li>
+<li>最后，流入解码器中，解码器中除了也有自注意力层、前馈层外，这两个层之间还有一个编码-解码注意力层，用来关注输入句子的相关部分（和seq2seq模型的注意力作用相似）</li>
+</ol>
+<h3 id="编码">编码</h3>
+<h4 id="编码器">编码器</h4>
+<figure data-type="image" tabindex="11"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624135656549.png" alt="image-20230624135656549" loading="lazy"></figure>
+<p>每个单词都有他独特的位置，一句话中的所有单词是并行进入编码器的，不是依次进入。</p>
+<h4 id="自注意力机制">自注意力机制</h4>
+<p>​	是从Attention引申而来的当模型处理单词“it”时，self-attention允许将“it”和“animal”联系起来。当模型处理每个位置的词时，self-attention允许模型看到句子中其他位置有关联或相似的单词/信息作为辅助线索，以更好地编码当前单词。</p>
+<p>​	回想一下RNN对隐藏状态的处理：将之前的隐藏状态与当前位置的输入结合起来。在Transformer中，自注意力机制则将对其他单词的“理解”融入到当前处理的单词中。</p>
+<p>​	说的直白点就是，你如果要更好的理解句中某个特定单词的含义，你要把它放到整个语境之中去理解，比如通过对上下文的把握。那上下文哪些词对理解该特定词更重要呢？这个重要程度便用所谓的权重表示(权重来自于该词/向量本身跟其他各个词/向量之间的相似度)，权重越大的单词代表与该词越相关(某种意义上可以认为是越相似)，从而对理解该词越重要，然后把该词编码为包括该词在内所有词的加权和。</p>
+<h4 id="多头注意力机制">多头注意力机制</h4>
+<p>​	简而言之，就是希望每个注意力头，只关注最终输出序列中一个子空间，互相独立，其核心思想在于，抽取到更加丰富的特征信息。</p>
+<p>​	它扩展了模型专注于不同位置的能力。编码“Thinking”的时候，虽然最后Z1或多或少包含了其他位置单词的信息，但是它实际编码中把过多的注意力放在“Thinking”单词本身(当然了，这也无可厚非，毕竟自己与自己最相似嘛)且如果我们翻译一个句子，比如“The animal didn’t cross the street because it was too tired”，我们会想知道“it”和哪几个词都最有关联，这时模型的“多头”注意机制会起到作用。</p>
+<h3 id="解码">解码</h3>
+<p>​	由于encoder的decoder组件差不多，所以也就基本知道了解码器的组件是如何工作的。最后，我们直接看下二者是如何协同工作的：</p>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624141857202.png" alt="image-20230624141857202" loading="lazy"></figure>
+<p>​</p>
+<h2 id="elmo即embedding-from-language-models">ELMO即“Embedding from Language Models”</h2>
+<h3 id="为什么要用elmo">为什么要用ELMO</h3>
+<p>​	众所周知，生成式大语言模型是基于Transformer架构的，但是最初的Transformer并不完善，后来通过结合ELMO才产生了大一统模型。</p>
+<p>​	我们之前的提到的Word Embedding本质上是个静态的方式，所谓静态指的是训练好之后每个单词的表达就固定住了，以后使用的时候，不论新句子上下文单词是什么，这个单词的Word Embedding不会跟着上下文场景的变化而改变。但是生活中有很多多义词。</p>
+<p>​	ELMO本身是个根据当前上下文对Word Embedding动态调整的思路根据上下文单词的语义去调整单词的Word Embedding表示。它的网络结构采用了<strong>双层双向LSTM</strong>，双向LSTM可以干啥？可以根据单词的上下文去预测单词，毕竟这比只通过上文去预测单词更准确。ELMO虽然采用的双向结构，但两个方向是彼此独立训练的，从而避免了已知答案找问题。</p>
+<h3 id="什么是fine-tuning">什么是Fine-tuning</h3>
+<ul>
+<li>Fine-tuning：冻结预训练模型的部分卷积层（通常是靠近输入的多数卷积层，因为这些层保留了大量底层信息）甚至不冻结任何网络层，训练剩下的卷积层（通常是靠近输出的部分卷积层）和全连接层</li>
+</ul>
+<p>如下图</p>
+<figure data-type="image" tabindex="13"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624144457781.png" alt="image-20230624144457781" loading="lazy"></figure>
+<ol>
+<li>在源数据集（如ImageNet数据集）上预训练一个神经网络模型，即源模型</li>
+<li>创建一个新的神经网络模型，即目标模型，它复制了源模型上除了输出层外的所有模型设计及其参数<br>
+我们假设这些模型参数包含了源数据集上学习到的知识，且这些知识同样适用于目标数据集<br>
+我们还假设源模型的输出层与源数据集的标签紧密相关，因此在目标模型中不予采用</li>
+<li>为目标模型添加一个输出大小为目标数据集类别个数的输出层，并随机初始化该层的模型参数</li>
+<li>在目标数据集(如椅子数据集)上训练目标模型，我们将从头训练输出层，而其余层的参数都是基于源模型的参数微调得到的</li>
+</ol>
+<h3 id="到gpt">到GPT</h3>
+<p>GPT是“Generative Pre-Training”的简称，从名字看其含义是指的生成式的预训练。<br>
+GPT也采用两阶段过程，第一个阶段是利用语言模型进行预训练，第二阶段通过Fine-tuning的模式解决下游任务</p>
+<p>GPT的预训练过程，其实和ELMO是类似的，主要不同在于两点：</p>
+<ol>
+<li>首先，特征抽取器不是用的LSTM，而是用的Transformer，毕竟它的特征抽取能力要强于LSTM，这个选择很明显是很明智的；</li>
+<li>其次，GPT的预训练虽然仍然是以语言模型作为目标任务，但是采用的是单向的语言模型</li>
+</ol>
+<figure data-type="image" tabindex="14"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230624144637937.png" alt="image-20230624144637937" loading="lazy"></figure>
+<p>那么为什么GPT采用的是单向的语言模型呢？</p>
+<blockquote>
+<p>首先，GPT把特征提取器从LSTM换成了更强的transformer，此举已经很是创新了（GPT之后大部分模型都开始用Transformer做特征提取器）<br>
+而此时如果用Transformer的结构提取上下文去做单词预测，那就势必用上Transformer双向结构，而Transformer不像ELMO的双向结构各个方向独立训练而不会see itself，但双向Transformer会出现see itself 啊！<br>
+这可万万不行，因为咱们原本就要训练模型的预测能力，而如果你通过双向非独立的结构都能看到中间要被预测的单词、看到答案了（比如当你用前面的词逐个的预测下一个词的时候，结果你从另一个方向看到每个词，你品、细品，举个例子，预测a b c d f，一开始从左至右逐个预测第二位置 第三位置 第四位置的词：b c d，然后你从右往左预测时，能逐个看到：第四位置 第三位置 第二位置的词：d c b），还做个啥子预测？<br>
+最终两相权衡，才导致GPT放弃Transformer的双向结构，改用Transformer的单向结构，此举也决定了GPT更适合根据已有文本然后生成下文的任务，要不它叫生成式模型呢</p>
+</blockquote>
+<h3 id="到bert双向transformer版的gpt">到BERT：双向Transformer版的GPT</h3>
+<p>GPT是使用「单向的Transformer Decoder模块」构建的，而 BERT则是通过「双向的Transformer Encoder 模块」构建的</p>
+<p>BERT综合了ELMO的双向优势与GPT的Transformer特征提取优势，即关键就两点</p>
+<ul>
+<li>第一点是特征抽取器采用Transformer</li>
+<li>第二点是预训练的时候采用双向语言模型</li>
+</ul>
+<h4 id="bert的两个创新点masked语言模型与next-sentence-prediction">BERT的两个创新点：Masked语言模型与Next Sentence Prediction</h4>
+<p>​	Masked Language Model（MLM）：所谓MLM是指在训练的时候随即从输入预料上mask掉一些单词，然后通过的上下文预测该单词，该任务非常像训练一个中学生做完形填空的能力。</p>
+<p>​	Next Sentence Prediction，其任务是判断句子B是否是句子A的下文，如果是的话输出’IsNext‘，否则输出’NotNext‘，这个关系保存在BERT输入表示图中的[CLS]符号中。</p>
+<h2 id="总结">总结</h2>
+<blockquote>
+<p>​	早期的NLP模型基于规则解决问题，比如专家系统，这种方式扩展性差，因为无法通过人来书写所有规则。<br>
+之后提出了基于统计学的自然语言处理，早期主要是基于浅层机器学习解决NLP问题。例如，通过马尔科夫模型获得语言模型，通过条件随机场CRF进行词性标注。如果你去看StandFord的NLP工具，里面处理问题的早期方法，都是这类方法。<br>
+当深度学习在图像识别领域得到快速发展时，人们也开始将深度学习应用于NLP领域。<br>
+​	首先是Word Embedding。它可以看成是对『单词特征』提取得到的产物，它也是深度学习的副产物。随后，人们又提出了Word2Vec，GloVe等类似预训练的词向量，作为对单词的特征抽象，输入深度学习模型。</p>
+<p>​	其次是RNN。RNN使得神经网络具有时序的特性，这种特性非常适合解决NLP这种词与词之间有顺序的问题。但是，深度学习存在梯度消失问题，这在RNN中尤其明显，于是人们提出了LSTM/GRU等技术，以解决这种梯度消失问题。在2018年以前，LSTM和GRU在NLP技术中占据了绝对统治地位</p>
+<p>​	当时RNN有个致命的问题，就是训练慢，无法并行处理，这限制了其发展。于是人们想到了是否可以用CNN替代RNN，以解决这个问题。于是人们提出了用1D CNN来解决NLP问题。但是这种方式也有个明显问题，就是丢掉了RNN的时序优势。</p>
+<p>​	除了时序问题，我们还不得不提另外一个关键问题，即注意力Attention。Attention最早用于图像识别领域，然后再被用于NLP领域。</p>
+<p>​	有了Attention技术，我们急需新技术既可以保证并行处理，又可以解决时序问题。于是Transformer腾空出世。它也是BERT的基础之一。</p>
+<p>​	除此之外，ELMO提出的预训练双向语言模型以及GPT提出的单向Tranformer也是最新双向Transformer发展的基础，在《Attention Is All You Need》一文，Transformer上升到另外一个高度。</p>
+<p>​	BERT正是综合以上这些优势提出的方法（预训练 + Fine-Tuning + 双向Transformer，再加上其两个创新点：Masked语言模型、Next Sentence Prediction），可以解决NLP中大部分问题。</p>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[基于cnn卷积神经网络实现的手写数字识别]]></title>
+        <id>https://sqlcow.github.io/ji-yu-cnn-juan-ji-shen-jing-wang-luo-shi-xian-de-shou-xie-shu-zi-shi-bie/</id>
+        <link href="https://sqlcow.github.io/ji-yu-cnn-juan-ji-shen-jing-wang-luo-shi-xian-de-shou-xie-shu-zi-shi-bie/">
+        </link>
+        <updated>2023-06-23T09:10:24.000Z</updated>
+        <summary type="html"><![CDATA[<p>手写数字识别最好的算法我认为就是cnn卷积神经网络了</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>手写数字识别最好的算法我认为就是cnn卷积神经网络了</p>
+<!-- more -->
+<blockquote>
+<p>最近一直在弄这个了，也算是小有成效。写篇博客记录一下。</p>
+</blockquote>
+<p>全文脉络：</p>
+<p>本文首先介绍了神经网络编程的基本原理，其次介绍了cnn卷积神经网络实现流程。</p>
+<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">神经网络</a></li>
+<li><a href="#%E4%BA%8C%E7%BB%B4%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C">二维卷积神经网络</a>
+<ul>
+<li><a href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A">名词解释：</a></li>
+<li><a href="#%E4%BB%A3%E7%A0%81%E6%B5%81%E7%A8%8B%E4%BB%A5%E6%89%8B%E5%86%99%E6%95%B0%E5%AD%97%E8%AF%86%E5%88%AB%E4%B8%BA%E4%BE%8B">代码流程（以手写数字识别为例）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="神经网络">神经网络</h2>
+<ul>
+<li><strong>神经网络的流程包括什么</strong></li>
+</ul>
+<p>首先放张图镇楼<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjcxOTA1NDM0OTktMjYxNDI4MC5qcGc" alt="" loading="lazy">本文说的神经网络实际上是特指前馈神经网络。</p>
+<p>多层神经网络是由<strong>双层神经网络</strong>推广而来的，下面介绍推广过程。</p>
+<p><strong>感知机：</strong><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMzAyMDQyNTgwNTctODIxMjY3ODEuanBn" alt="" loading="lazy"></p>
+<p>实际上就是单层神经网络，包括输入层和输出层</p>
+<p>输入一个值，经过一层权值计算过后，输出结果。输出公式可以改写成：g(<strong>W</strong> * <strong>a</strong>) = <strong>z</strong>;</p>
+<p>我们需要做的就是：通过合适的训练算法更改权值，使得预测结果更加接近要求</p>
+<p><strong>由感知机（单层神经网络）推广到两层神经网络（多层感知机）:</strong></p>
+<p>单层神经网络只能进行线性分类任务，毕竟是矩阵相乘出来的，如何推广到非线性分类任务呢，我们在感知机的输入层和输出层之间添加了一个隐藏层。</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraaHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjIxNjQ3MzEyNDktMzYwOTIxMDE0LmpwZw" alt="" loading="lazy"></figure>
+<p>计算最终输出z的方式是利用了中间层的a1(2)，a2(2)和第二个权值矩阵计算得到的</p>
+<p><strong>延续两层神经网络的方式来设计一个多层神经网络。</strong></p>
+<p>在两层神经网络的输出层后面，继续添加层次。原来的输出层变成中间层，新加的层次成为新的输出层。所以可以得到下图。</p>
+<figure data-type="image" tabindex="2"><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9pbWFnZXMyMDE1LmNuYmxvZ3MuY29tL2Jsb2cvNjczNzkzLzIwMTUxMi82NzM3OTMtMjAxNTEyMjQyMDQzMzkyMzQtMTk5NDYyMDMxMy5qcGc?x-oss-process=image/format,png" alt="" loading="lazy"></figure>
+<p>把计算权重和的这个过程叫做“<strong>正向传播</strong>”。</p>
+<ul>
+<li><strong>神经网络是如何进行训练的？</strong></li>
+</ul>
+<p>定义损失：首先给所有参数赋上随机值。我们使用这些随机生成的参数值，来预测训练数据中的样本。样本的预测目标为yp，真实目标为y。那么，定义一个值loss，计算公式如下。</p>
+<p>loss = (yp - y)2</p>
+<p>那么接下来我们的训练任务就可以转换成：如何优化参数，能够让损失函数的值最小。</p>
+<p>使用的是<strong>梯度下降</strong>算法。梯度下降算法每次计算参数在当前的梯度，然后让参数向着梯度的反方向前进一段距离，不断重复，直到梯度接近零时截止。一般这个时候，所有的参数恰好达到使损失函数达到一个最低值的状态。</p>
+<p>由于结构复杂，每次计算梯度的代价很大。因此还需要使用<strong>反向传播</strong>算法。反向传播算法是利用了神经网络的结构进行的计算。不一次计算所有参数的梯度，而是从后往前。首先计算输出层的梯度，然后是第二个参数矩阵的梯度，接着是中间层的梯度，再然后是第一个参数矩阵的梯度，最后是输入层的梯度。计算结束以后，所要的两个参数矩阵的梯度就都有了。</p>
+<ul>
+<li><strong>神经网络是如何实现由线性的矩阵运算到非线性的？</strong></li>
+</ul>
+<p>通过激活函数和多层感知机，在每次权重的传递过程中都要进行一次激活。具体方法如下</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230615191632228.png" alt="image-20230615191632228" loading="lazy"></figure>
+<ul>
+<li><strong>激活函数固定吗？</strong></li>
+</ul>
+<p>不固定，在单层神经网络时，使用的激活函数是sgn函数。到了两层神经网络时，使用的最多的是sigmoid函数。而到了多层神经网络时，通过一系列的研究发现，ReLU函数在训练多层神经网络时，更容易收敛，并且预测性能更好。</p>
+<ul>
+<li><strong>训练神经网络的目的是什么？</strong></li>
+</ul>
+<p><strong>多层的神经网络</strong>的本质就是复杂函数拟合。训练的主题仍然是优化和泛化。梯度下降算法以及反向传播算法在多层神经网络中的训练中仍然工作的很好。目前学术界主要的研究既在于开发新的算法，也在于对这两个算法进行不断的优化。</p>
+<h2 id="二维卷积神经网络">二维卷积神经网络</h2>
+<h3 id="名词解释">名词解释：</h3>
+<ul>
+<li>特征提取器：<strong>卷积和下采样</strong>的过程就是为了<strong>提取图像的特征</strong></li>
+<li>卷积：为了<strong>保留原始图像的空间信息</strong>。每个通道都和一个卷积核做卷积最终相加。</li>
+<li>共享权重机制：卷积过后维数变多的原因：每一个<strong>卷积核的通道数量和输入通道个数</strong>一样，<strong>卷积核的个数和输出通道的个数</strong>一样。</li>
+<li>padding：防止因为<strong>卷积导致的图像高度和宽度的改变</strong>（3*3的卷积核卷积过程图像-2）</li>
+<li>下采样：（<strong>无权重</strong>，所以只需要做一次即可这里使用最大池化层）通道数不变，图像的宽度和高度改变，为了减少图像的特征量，<strong>降低运算需求</strong></li>
+<li>张量展开：为了得到<strong>线性的向量输入</strong></li>
+<li>全连接：每一个输入值和<strong>任意一个输出值都有权重</strong>的线形层。</li>
+<li>分类器：对<strong>向量</strong>的分类</li>
+</ul>
+<h3 id="代码流程以手写数字识别为例">代码流程（以手写数字识别为例）</h3>
+<ol>
+<li>定义一些超参数</li>
+</ol>
+<pre><code class="language-python">batch_size = 64 #每次训练的图片数量
+learning_rate = 0.01 #参数更新的步长
+momentum = 0.5 #梯度下降的动量大小，表示了模型在之前更新中的方向和速度。
+EPOCH = 1 #训练的轮数
+device=torch.device(&quot;cuda:0&quot;if torch.cuda.is_available()else &quot;cpu&quot;)
+</code></pre>
+<ol start="2">
+<li>数据集下载，数据预处理</li>
+</ol>
+<ul>
+<li>将图像转换为张量格式，并对其进行标准化</li>
+<li>MNIST数据集，标准化操作通过减去均值0.1307并除以标准差0.3081来实现。这两个值是通过对MNIST数据集进行的像素值统计，得到的每个通道的均值和标准差。</li>
+<li>减去均值（0.1307）然后除以标准差（0.3081）得到的是趋于正态分布的图像</li>
+</ul>
+<pre><code class="language-python">transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])#将图像转换为张量格式，并对其进行标准化
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)#下载训练集
+test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)#下载测试集
+print('下载数据集完成')
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#乱序加载数据集
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)#乱序加载数据集
+</code></pre>
+<ol start="3">
+<li>建立模型</li>
+</ol>
+<p>由于卷积和池化的特点，</p>
+<p>卷积结果和卷积之前图像大小改变**（卷积核大小%2）<em>2</em>*，通道数量变多；</p>
+<p>池化前后通道不变，图像大小/2；</p>
+<p>最后一次池化结束后view展开到全连接层，因为要做手写数字识别所以全连接层通道数一定为10；</p>
+<p>卷积过程需要提供三个参数：输入通道、输出通道、卷积核大小</p>
+<pre><code class="language-python">class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()#定义模型
+        self.conv1 = torch.nn.Sequential(#定义第一次卷积
+            torch.nn.Conv2d(1, 10, kernel_size=5),#定义卷积核大小卷积前后通道数目
+            torch.nn.ReLU(),#激活函数
+            torch.nn.MaxPool2d(kernel_size=2),#定义最大池化，池化用到的核大小3为2
+        )
+        self.conv2 = torch.nn.Sequential( 
+            torch.nn.Conv2d(10, 20, kernel_size=5),#定义第二次卷积，卷积过程需要提供三个参数：输入通道、输出通道、卷积核大小
+            torch.nn.ReLU(),#激活函数
+            torch.nn.MaxPool2d(kernel_size=2),
+        )
+        self.fc = torch.nn.Sequential( #展平阶段
+            torch.nn.Linear(320, 50),#第一次展平
+            torch.nn.Linear(50, 10),#第二次展平
+        )
+
+    def forward(self, x):#模型的前向传播函数，它接受输入 x。
+        batch_size = x.size(0)#每次读取的图片数量
+        x = self.conv1(x)  # 一层卷积层,一层池化层,一层激活层
+        x = self.conv2(x)  # 再来一次
+        x = x.view(batch_size, -1)  # 展平络需要的输入
+        x = self.fc(x)#展平后的 x 输入到全连接层（self.fc）进行计算，并将结果赋值给变量 x。
+        return x  # 返回值
+</code></pre>
+<ol start="4">
+<li>定义反馈模型的方式</li>
+</ol>
+<ul>
+<li>损失函数使用交叉熵损失</li>
+</ul>
+<p>由二分类推广到多分类，记住即可</p>
+<ul>
+<li>参数优化使用随机梯度下降</li>
+</ul>
+<p>torch.optim.SGD()：SGD优化器将根据此参数来更新模型。</p>
+<p>model.parameters()：这是一个模型对象（model）的方法，用于返回模型中所有需要进行优化的参数。它将返回一个包含这些参数的可迭代对象，供优化器使用。 lr=learning_rate：用于控制优化器在每次参数更新时的步长大小。 momentum=momentum：有助于加快训练速度并克服局部最小值。</p>
+<pre><code class="language-python">model = Net()#实例化模型
+model.load_state_dict(torch.load('model.pth')) #加载本地模型
+model.to(device)#加载到gpu上
+criterion = torch.nn.CrossEntropyLoss()  # 交叉熵损失
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)  # 定义学习率，冲量
+</code></pre>
+<ol start="5">
+<li>训练模型</li>
+</ol>
+<ul>
+<li>前馈（forward propagation）</li>
+<li>反馈（backward propagation）</li>
+<li>更新（update）</li>
+</ul>
+<pre><code class="language-python">def train(epoch):
+    running_loss = 0.0  # 清零全部loss
+    running_total = 0  #训练过程中的总样本数
+    running_correct = 0  #推断正确的样本数量
+    for batch_idx, data in enumerate(train_loader, 0):#使用 enumerate 函数迭代 train_loader 中的数据
+        inputs, target = data   #获得输入 inputs 和目标标签 target。
+        inputs, target = inputs.to(device), target.to(device) #加载数据到gpu上
+        optimizer.zero_grad()  #清零模型的梯度信息，为下一次迭代做准备
+        outputs = model(inputs)# 模型对inputs进行前向传播得到预测结果
+        loss = criterion(outputs, target)#计算loss
+        loss.backward()#把loss反馈给模型
+        optimizer.step()#反馈结束以后执行参数更新
+        running_loss += loss.item()# 把运行中的loss累加起来，为了下面300次一除
+        _, predicted = torch.max(outputs.data, dim=1) # 函数获取预测结果中的最大值及其对应的索引
+        running_total += inputs.shape[0]#计算一共训练使用的样本数。
+        running_correct += (predicted == target).sum().item()#计算准确推理的样本数
+        if batch_idx % 300 == 299:  # 每300次出一个平均损失,和准确率
+            print('[%d, %5d]: 和训练集正确答案的误差: %.3f , 判断正确率: %.2f %%'
+                  % (epoch + 1, batch_idx + 1, running_loss / 300, 100 * running_correct / running_total))
+            running_loss = 0.0  # 这小批300的loss清零
+            running_total = 0 #总共训练的的图片个数清零
+            running_correct = 0  # 这小批300的acc清零
+        torch.save(model.state_dict(), './model.pth') #保存模型
+</code></pre>
+<ol start="6">
+<li>测试模型准确率</li>
+</ol>
+<p>大体思路和训练模型一样，不过不对模型进行更新</p>
+<pre><code class="language-python">def test():
+    total = 0 #测试一共的样本数量
+    correct = 0 #测试正确的样本数量
+    with torch.no_grad():  # 不计算梯度，因为不进行梯度更新
+        for data in test_loader: #遍历test_loader中的每个数据批次。
+            images, labels = data #从data中解包出输入图像images和对应的标签labels
+            images, labels = images.to(device),labels.to(device)#加载数据到gpu上
+            outputs = model(images) #输入图像images输入模型model，并得到模型的输出
+            _, predicted = torch.max(outputs.data, dim=1)  # torch.max()函数在输出张量outputs.data的第1个维度上找到最大值和对应的索引
+            total += labels.size(0)  # 统计总样本数。
+            correct += (predicted == labels).sum().item()#逐元素比较，返回一个布尔张量，对所有为True的元素求和，将结果转换为Python标量，将预测正确的样本数加到correct上。
+    acc = correct / total #求正确率
+    print('[%d / %d]: 在测试集上的准确率为: %.1f %% ' % (epoch+1, EPOCH, 100 * acc))  # 求测试的准确率，正确数/总数
+    return acc
+
+</code></pre>
+<ol start="7">
+<li>本地推理模型</li>
+</ol>
+<p>同样需要数据处理，加载模型等步骤</p>
+<pre><code class="language-python"># 创建模型实例
+model = Net()  # 替换为你的模型类
+
+# 加载已训练的模型参数
+state_dict = torch.load('model.pth')
+
+# 将参数加载到模型中
+model.load_state_dict(state_dict)
+
+# 设置模型为评估模式
+model.eval()
+# 反色函数
+def inverse_transform(image):
+    return 1.0 - image
+# 定义图像转换
+transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.Resize((28, 28)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+    transforms.Lambda(inverse_transform)
+])
+# 读取并预处理图像
+image_path = 'E:\jupyter\手写数字识别\image.png'  # 替换为你的图像路径
+image = Image.open(image_path)
+image = transform(image).unsqueeze(0)  # 添加批处理维度
+
+# 进行推理
+with torch.no_grad():
+    output = model(image)
+print(output)
+# 获取预测结果
+_, predicted = torch.max(output, 1)
+predicted_class = predicted.item()
+
+print(f&quot;预测结果为: {predicted_class}&quot;)
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[python爬取网易云音乐音乐下载]]></title>
+        <id>https://sqlcow.github.io/python-pa-qu-wang-yi-yun-yin-le-yin-le-xia-zai/</id>
+        <link href="https://sqlcow.github.io/python-pa-qu-wang-yi-yun-yin-le-yin-le-xia-zai/">
+        </link>
+        <updated>2023-06-23T09:06:20.000Z</updated>
+        <summary type="html"><![CDATA[<p>爬虫不难，无非就是request之后解析网页，难在解密，这里以网易云音乐下载为例，使用最简单的爬虫库</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>爬虫不难，无非就是request之后解析网页，难在解密，这里以网易云音乐下载为例，使用最简单的爬虫库</p>
+<!-- more -->
+<blockquote>
+<p>基于python 3.8.0</p>
+</blockquote>
+<h2 id="实时搜索音乐">实时搜索音乐</h2>
+<p>来到音乐搜索界面，打开开发者工具<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620171031236.png" alt="image-20230620171031236" loading="lazy"></p>
+<p>我们这里需要寻找的是通过post请求可以返回的值而不是</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620171349443.png" alt="image-20230620171349443" loading="lazy"></figure>
+<p>图上这个链接。</p>
+<p>可以看到下图这个网址即为搜索接口</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620171710911.png" alt="image-20230620171710911" loading="lazy"></figure>
+<p>请求方式和请求地址为</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620171732981.png" alt="image-20230620171732981" loading="lazy"></figure>
+<p>https://music.163.com/weapi/cloudsearch/get/web?csrf_token=即为请求地址</p>
+<p>由下图可知，我们需要传入params和encSecKey两参数</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620171855773.png" alt="image-20230620171855773" loading="lazy"></figure>
+<p>使用python模拟发送请求发现，这一堆参数中不仅包括用户信息，还包括搜索词</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620173818881.png" alt="image-20230620173818881" loading="lazy"></figure>
+<p>代码如下</p>
+<pre><code class="language-python">import requests
+import json
+
+url = 'https://music.163.com/weapi/cloudsearch/get/web?csrf_token='
+
+headers = {
+    'Referer': 'https://music.163.com/',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36',
+}
+
+# 将params和encSecKey参数设置为对应的值
+params = 'fmrKgQTgAQ14j1dV/SXHyvPJ/F7VCIu+GpTOLYVwN1KuRdpQQrAykScsCc3xsxYrlkz838QVgdzdPB/sdRe3ESF9m8+mLWqeI2/Ctm2r5ui+msMiDc5itnP0JeI/Z2Iuge10PMoeWb+GUXS+QiGTcp4NSWa9/bHfsFieqshqs+U57db7L8JYP8FlI1+9IBXiIb66TDFzDTO9fOZgf3T4s848zr3HBN9f3hVCaNTGktLE8szgOfGb0+5e6dqnEMY7tta/wNbYD+BNE8kUlnhud/z/moMAsLkizWt4mBVYo2U='
+encSecKey = '59175b3b6bbad1956ab2a3ed517e4638a934bead1c6d1a1308611bb49e85ea9131ccd40461d8cacfbea3318190c4ad75d4cd15328164ecd787b79d2c16ce85ac4e3cd65fe53575c80da99766c218126448e46652dec0647c34260e4fe3c78fc6b30e0447c50e5b9e20697f34692280e0760d71da1c3baa27d5acc16c59045c4e'
+
+# 构造请求参数
+data = {
+    'params': params,
+    'encSecKey': encSecKey
+}
+
+# 发送POST请求
+response = requests.post(url, headers=headers, data=data)
+
+# 获取响应数据
+result = response.json()
+print(result)
+
+</code></pre>
+<h3 id="解密呃呃啊啊啊啊啊啊啊啊啊啊">解密呃呃啊啊啊啊啊啊啊啊啊啊</h3>
+<p>看来没办法作弊了</p>
+<p>只能自己算一个encSecKey出来</p>
+<p>按ctrl+f搜索encSecKey</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620174529105.png" alt="image-20230620174529105" loading="lazy"></figure>
+<p>是这样生成的,实际上是window.asrsea的一个参数</p>
+<pre><code class="language-js">var bVe1x = window.asrsea(JSON.stringify(i4m), bsk1x([&quot;流泪&quot;, &quot;强&quot;]), bsk1x(Vx7q.md), bsk1x([&quot;爱心&quot;, &quot;女孩&quot;, &quot;惊恐&quot;, &quot;大笑&quot;]));
+</code></pre>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620174717406.png" alt="image-20230620174717406" loading="lazy"></figure>
+<p>那这个参数是如何生成的呢，搜索window.asrsea，发现</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620174816773.png" alt="image-20230620174816773" loading="lazy"></figure>
+<p>window.asrsea是d这个函数的返回值</p>
+<p>d这个函数是由</p>
+<pre><code class="language-js">function d(d, e, f, g) {
+        var h = {}
+          , i = a(16);
+        return h.encText = b(d, g),
+        h.encText = b(h.encText, i),
+        h.encSecKey = c(i, e, f),
+        h
+    }
+</code></pre>
+<p>生成的。（套娃是吧）</p>
+<p>现在可以看见这里有defg四个参数</p>
+<p>搜索了一下，只有第一个参数会变动，其他三个参数是不变的</p>
+<p>计算方法为</p>
+<pre><code class="language-python"># 获取一个随意字符串，length是字符串长度
+def generate_str(lenght):
+    str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    res = ''
+    for i in range(lenght):
+        index = random.random() * len(str)  # 获取一个字符串长度的随机数
+        index = math.floor(index)  # 向下取整
+        res = res + str[index]  # 累加成一个随机字符串
+    return res
+# AES加密获得params
+def AES_encrypt(text, key):
+    iv = '0102030405060708'.encode('utf-8')  # iv偏移量
+    text = text.encode('utf-8')  # 将明文转换为utf-8格式
+    pad = 16 - len(text) % 16
+    text = text + (pad * chr(pad)).encode('utf-8')  # 明文需要转成二进制，且可以被16整除
+    key = key.encode('utf-8')  # 将密钥转换为utf-8格式
+    encryptor = AES.new(key, AES.MODE_CBC, iv)  # 创建一个AES对象
+    encrypt_text = encryptor.encrypt(text)  # 加密
+    encrypt_text = base64.b64encode(encrypt_text)  # base4编码转换为byte字符串
+    return encrypt_text.decode('utf-8')
+# RSA加密获得encSeckey
+def RSA_encrypt(str, key, f):
+    str = str[::-1]  # 随机字符串逆序排列
+    str = bytes(str, 'utf-8')  # 将随机字符串转换为byte类型的数据
+    sec_key = int(codecs.encode(str, encoding='hex'), 16) ** int(key, 16) % int(f, 16)  # RSA加密
+    return format(sec_key, 'x').zfill(256)  # RSA加密后字符串长度为256，不足的补x
+# 获取参数
+def get_params(d, e, f, g):
+    i = generate_str(16)    # 生成一个16位的随机字符串
+    # i = 'aO6mqZksdJbqUygP'
+    encText = AES_encrypt(d, g)
+    # print(encText)    # 打印第一次加密的params，用于测试d正确
+    params = AES_encrypt(encText, i)  # AES加密两次后获得params
+    encSecKey = RSA_encrypt(i, e, f)  # RSA加密后获得encSecKey
+    return params, encSecKey
+e = '010001'
+f = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7'
+g = '0CoJUm6Qyw8W8jud'
+
+# 传入msg和url,获取返回的json数据
+def get_data(msg, url):
+    encText, encSecKey = get_params(msg, e, f, g)   # 获取参数
+    params = {
+        &quot;params&quot;: encText,
+        &quot;encSecKey&quot;: encSecKey
+    }
+    re = requests.post(url=url, params=params, verify=False)    # 向服务器发送请求
+    return re.json()    #返回结果
+
+</code></pre>
+<h2 id="音乐下载">音乐下载</h2>
+<p>点击播放，就可以直接拿到音乐下载链接</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620180340644.png" alt="image-20230620180340644" loading="lazy"></figure>
+<p>api接口地址为https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=</p>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620180445140.png" alt="image-20230620180445140" loading="lazy"></figure>
+<p>参考： <a href="https://typora-1314670570.cos.ap-beijing.myqcloud.com/python%E7%88%AC%E8%99%AB%E7%88%AC%E5%8F%96%E7%BD%91%E6%98%93%E4%BA%91%E9%9F%B3%E4%B9%90.pdff">python爬虫爬取网易云音乐.pdf</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用安卓内核驱动进行内存读写以实现过检测]]></title>
+        <id>https://sqlcow.github.io/shi-yong-an-zhuo-nei-he-qu-dong-jin-xing-nei-cun-du-xie-yi-shi-xian-guo-jian-ce/</id>
+        <link href="https://sqlcow.github.io/shi-yong-an-zhuo-nei-he-qu-dong-jin-xing-nei-cun-du-xie-yi-shi-xian-guo-jian-ce/">
+        </link>
+        <updated>2023-06-23T09:04:44.000Z</updated>
+        <summary type="html"><![CDATA[<p>什么年代了，还在开传统外挂？当然是从系统层面啦！</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>什么年代了，还在开传统外挂？当然是从系统层面啦！</p>
+<!-- more -->
+<ul>
+<li>
+<p>你是不是经常看到一些游戏辅助声称自己<strong>独家内核驱动</strong>，<strong>支持一切机型</strong>，<strong>无视游戏检测</strong>。</p>
+</li>
+<li>
+<p>本文将带领你，<strong>从0开始</strong>，编译属于自己的<strong>安卓内核驱动</strong>。</p>
+</li>
+<li>
+<p>通过本文：你将从一名初级的游戏辅助开发者，摇身一变成为所谓的<strong>独家内核作者</strong></p>
+</li>
+<li>
+<p>本文只涉及过检测等内容，不涉及辅助编写。如果对辅助编写感兴趣的，请看我以前的文章。</p>
+</li>
+</ul>
+<p>[TOC]</p>
+<blockquote>
+<p>阅读本文的方法：</p>
+<p>请确保你拥有着强大的动手能力，以及对游戏辅助开发强烈的兴趣。</p>
+<p>请直接阅读<strong>内核编译部分</strong></p>
+<p><strong>前置知识部分</strong>类似于字典的附录，当你需要时，可以回来查找。正所谓：知其然，知其所以然。</p>
+</blockquote>
+<h2 id="前置知识">前置知识</h2>
+<h3 id="何为内核驱动">何为内核驱动</h3>
+<p>对于一个驱动来说，最重要的就是<code>3</code>个文件：</p>
+<ol>
+<li>源代码</li>
+<li>Kconfig</li>
+<li>Makefile</li>
+</ol>
+<p>只要按照固定的格式来编写这<code>3</code>个文件，<code>linux</code>内核的编译脚本就可以确保把我们的驱动程序编译进去。</p>
+<p>而编译一个内核模块有以下两种方式：</p>
+<ol>
+<li>编译进内核;</li>
+<li>编译为一个独立的驱动模块;</li>
+</ol>
+<p>首先，我们打开rwProcMem模块中的makefile文件<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoradb75ec6abae447e69a761a7bf717df21.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p>这段代码的意思是：</p>
+<pre><code class="language-c"># 定义模块名
+MODULE_NAME := rwProcMem37
+
+# 定义内核对象文件
+RESMAN_CORE_OBJS:=sys.o
+
+# 定义空的 glue 对象文件
+RESMAN_GLUE_OBJS:=
+
+# 如果已经在内核构建过程中了
+ifneq ($(KERNELRELEASE),)
+    # 指定需要链接的对象文件
+    $(MODULE_NAME)-objs:=$(RESMAN_GLUE_OBJS) $(RESMAN_CORE_OBJS)
+    # 声明需要编译成模块的源文件
+    obj-m := rwProcMem37.o
+else
+    # 如果不在内核构建过程中，则定义内核路径
+    KDIR := /cepheus-q-oss/out
+all:
+    # 切换到内核路径并编译模块
+    make -C $(KDIR) M=$(PWD) ARCH=arm64 SUBARCH=arm64 modules
+clean:
+    # 清理生成的文件
+    rm -f *.ko *.o *.mod.o *.mod.c *.symvers *.order
+endif
+
+</code></pre>
+<p>实际上这是一种固定写法。意为此模块的编译方式为：进入<code>rwProcMem37</code>目录，只编译这一个驱动模块。</p>
+<h3 id="安卓内核boot">安卓内核boot</h3>
+<p>Android不同于一般的嵌入式Linux系统环境固件的组成方式（booloader+kernel+rootfs），其将kernel、ramdisk(rootfs)、second stage(dtb、kernel.logd等)整体打包成一个boot.img文件</p>
+<p>而我们对内核的操作，无疑需要boot.img文件。</p>
+<p>下面将介绍，一般机型获取boot.img文件的方法</p>
+<h4 id="获取bootimg文件">获取boot.img文件</h4>
+<p>首先，请下载你机型现在版本的完整包。线刷包卡刷包均可。</p>
+<p>以小米12pro为例</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraa10420f9f2ba427d4721a27a7898b553.png" alt="11" loading="lazy"></figure>
+<p>在右上角，可以看到下载最新完整包的字样。</p>
+<p>下载好最新版完整包并传输到电脑上。</p>
+<p>接下来我们要用到<strong>payload_dumper.exe</strong>这个工具解包。</p>
+<p>[下载地址][https://shuj.lanzoue.com/i79XB0s5bf0f]</p>
+<p>新建一个文件夹，将解包工具放进去</p>
+<p>再次新建两个文件夹分别命名为<strong>payload_input</strong>和<strong>payload_output</strong></p>
+<p>最终文件夹结构如图<br>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora55004de0256d436ab3ce7df185642328.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p>将刚刚下载的<strong>最新版完整包</strong>用<strong>电脑自带的解压工具</strong>解压。</p>
+<p>找到<strong>payload.bin</strong>文件，放入<strong>payload_input</strong>文件夹之中</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora25862a8c0f984f20b7c405eb4a11d605.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>然后运行解包工具，在<strong>payload_output</strong>文件夹中可以找到解压出来的boot.img</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorad23d790fd2d09dd96e10bfd2fbfb2f4c.png" alt="1112" loading="lazy"></figure>
+<h3 id="将你的纯c项目适配内核过检测技术">将你的纯c项目，适配内核过检测技术</h3>
+<p>在rwProcMem33这个项目中，提供了完整的内存读写技术</p>
+<pre><code class="language-c++">//驱动_打开进程
+	uint64_t hProcess = rwDriver.OpenProcess(pid);
+	printf(&quot;调用驱动 OpenProcess 返回值:%&quot; PRIu64 &quot;\n&quot;, hProcess);
+	if (!hProcess) {
+		printf(&quot;调用驱动 OpenProcess 失败\n&quot;);
+		fflush(stdout);
+		return 0;
+	}
+
+
+	//驱动_读取进程内存
+	char readBuf[1024] = { 0 };
+	size_t real_read = 0;
+	//如果是单线程读内存，还可另选用极速版函数：ReadProcessMemory_Fast
+	BOOL read_res = rwDriver.ReadProcessMemory(hProcess, (uint64_t)pBuf, &amp;readBuf, sizeof(readBuf), &amp;real_read, FALSE);
+	printf(&quot;调用驱动 ReadProcessMemory 读取内存地址:%p,返回值:%d,读取到的内容:%s,实际读取大小:%zu\n&quot;, pBuf, read_res, readBuf, real_read);
+
+	//驱动_写入进程内存
+	memset(readBuf, 0, sizeof(readBuf));
+	snprintf(readBuf, sizeof(readBuf), &quot;%s&quot;, &quot;写入456&quot;);
+	size_t real_write = 0;
+	//如果是单线程写内存，还可另选用极速版函数：WriteProcessMemory_Fast
+	BOOL write_res = rwDriver.WriteProcessMemory(hProcess, (uint64_t)pBuf, &amp;readBuf, sizeof(readBuf), &amp;real_write, FALSE);
+	printf(&quot;调用驱动 WriteProcessMemory 写入内存地址:%p,返回值:%d,写入的内容:%s,实际写入大小:%zu\n&quot;, pBuf, write_res, readBuf, real_write);
+
+	printf(&quot;当前缓冲区内容 :%s,当前缓冲区的内存地址:%p\n&quot;, szBuf, pBuf);
+
+</code></pre>
+<p>替换纯c的内存读写模块即可，其他的部分不用进行改动</p>
+<p>之后重新编译纯c</p>
+<h3 id="win端编译纯c">win端编译纯c</h3>
+<h4 id="一下载ndk">一.下载NDK</h4>
+<p>NDK下载</p>
+<ul>
+<li>
+<p>下载注意区分32位和64位的</p>
+</li>
+<li>
+<p>下载完成之后直接解压</p>
+</li>
+<li>
+<p>如果需要下载最新的NDK版本，可能需要到谷歌官网去下载</p>
+</li>
+<li>
+<p><strong>想要编译纯c，请不要下载最新版ndk，最新版ndk已经停止了对gcc的支持。请下载<em>android-ndk-r17c</em>版本</strong></p>
+</li>
+</ul>
+<h4 id="二环境变量">二.环境变量</h4>
+<p>环境变量设置：输入NDK的路径</p>
+<h4 id="三检查ndk是否能正确运行">三.检查NDK是否能正确运行</h4>
+<p>如果确认环境变量路径配置没问题，命令行还是无法识别ndk-build的命令，可以尝试重启电脑或者命令行</p>
+<h4 id="四编译纯c">四.编译纯c</h4>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraa3d06ed4bf2d4936bd44f9b0d3a45810.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>在testko目录下，打开cmd命令行</p>
+<p>输入</p>
+<pre><code class="language-c">ndk-build
+</code></pre>
+<p>在libs目录中可以找到编译成功的纯c文件</p>
+<h3 id="下载对应版本的内核源码">下载对应版本的内核源码</h3>
+<p>首先下载<strong>adb工具</strong>，英文不好的可以下载一个搞机助手电脑版打开adb。然后连接手机。执行</p>
+<pre><code class="language-bash">adb shell cat /proc/version
+</code></pre>
+<p>查看自己手机的内核版本号</p>
+<p>如下图</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora7bfaddace6c7450b83fcb3a66e0e4112.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>我的手机内核版本号为 Linux version 4.14.180-perf-g11d81629da33</p>
+<p>然后去 https://source.android.com/setup/build/building-kernels 这里查看自己的源码分支</p>
+<p>并且下载源码</p>
+<pre><code class="language-bsah">repo init -u https://android.googlesource.com/kernel/manifest -b
+android-msm-coral-4.14-android12
+repo sync
+</code></pre>
+<p>之后的步骤中要用到</p>
+<h2 id="编译内核驱动模块~">编译内核驱动模块~</h2>
+<h3 id="环境配置">环境配置</h3>
+<p>建议使用ubuntu虚拟机或者云主机。</p>
+<p>以下命令如果执行报错，请自行解决，不论用什么方法，只要达到了命令前的描述即可。</p>
+<ul>
+<li>更换软件源为阿里源</li>
+</ul>
+<pre><code class="language-bash">sudo cp /etc/apt/sources.list /etc/apt/sources.list_backup
+sudo gedit /etc/apt/sources.list
+# 阿里云源
+deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted
+universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main
+restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted
+universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main
+restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main
+restricted universe multiverse
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential
+</code></pre>
+<ul>
+<li>安装git，curl，python</li>
+</ul>
+<pre><code class="language-bash">sudo apt-get install git
+git config --global user.email &quot;xxx@gmail.com&quot;
+git config --global user.name &quot;xxx&quot;
+##安装git
+sudo apt-get install curl
+mkdir ~/bin
+PATH=~/bin:$PATH
+curl https://storage.googleapis.com/git-repo-downloads/repo &gt;
+~/bin/repo
+chmod a+x ~/bin/repo
+##安装curl
+add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.9
+sudo ln -s /usr/bin/python3 /usr/bin/python
+##安装python
+</code></pre>
+<ul>
+<li>修改交换区大小</li>
+</ul>
+<pre><code class="language-bash">sudo swapoff /swapfile
+sudo rm /swapfile
+# 设置了32g交换区, 防止编译失败
+sudo dd if=/dev/zero of=/swapfile bs=1GB count=32
+sudo chmod 600 /swapfile
+sudo mkswap -f /swapfile
+sudo swapon /swapfile
+
+</code></pre>
+<h3 id="编译源码">编译源码</h3>
+<p><strong>下面开始，是对手机内核进行的操作。请务必一步一步进行，严格按照说明。否则将有变砖风险</strong></p>
+<h4 id="使用android-image-kitchen解压boot">使用android-image-kitchen解压boot</h4>
+<p>[下载链接][https://forum.xda-developers.com/attachments/android-image-kitchen-v3-8-win32-zip.5300919/]</p>
+<p>将boot.img放到其文件夹下面, 运行unpackimg.bat得到命令行参数</p>
+<p>注意：<strong>文件夹路径不能有中文</strong></p>
+<p>得到命令行参数如下<br>
+<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora9447f2c1de734bf6a796be0c3d6fdcbc.png" alt="在这里插入图片描述" loading="lazy"></p>
+<p><strong>请不要关闭命令行，得到的参数要用到</strong></p>
+<p>还在<strong>split_img</strong>文件下可以找到一个名为<strong>boot.img-ramdisk.cpio.gz</strong>的文件。如下图</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora662ef34df38d4f7ca3124f37158bc74d.png" alt="在这里插入图片描述" loading="lazy"></figure>
+<p>将这个文件解压到最开始下载好的内核源码中，如果你还不知道如何下载你对应机型的内核源码，请参看<strong>前置知识</strong>中源码下载部分</p>
+<h4 id="在源码中加点私货">在源码中加点私货</h4>
+<p>下载[私货][http://aospxref.com/android-11.0.0_r21/xref/system/tools/mkbootimg/mkbootimg.py]</p>
+<p>到源码的根目录下</p>
+<p>修改build/build.sh, 在echo &quot; Files copied to ${DIST_DIR}&quot;之前加上</p>
+<pre><code class="language-bash">if [ -f &quot;${VENDOR_RAMDISK_BINARY}&quot; ]; then
+cp ${VENDOR_RAMDISK_BINARY} ${DIST_DIR}
+fi
+</code></pre>
+<h4 id="下载内核驱动源码">下载内核驱动源码</h4>
+<p><s>市面上大部分内核项目，都是用rwProcMem33的这个源码</s></p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora5b5247cf11e94e0cae5ddba3fb9ec760.jpeg" alt="在这里插入图片描述" loading="lazy"></figure>
+<pre><code>obj-m += rwProcMem.o
+</code></pre>
+<p>将drivers目录下的Makefile文件加一行</p>
+<pre><code>obj-m += rwProcMem/
+</code></pre>
+<p>修改ver_control.h, 将使用pagemap的宏定义启用</p>
+<p>取消掉ver-control.h中第二个宏的注释就行</p>
+<h4 id="开始编译">开始编译</h4>
+<p>其中的参数根据android-image-kitchen解包出的修改替换即可</p>
+<pre><code>BUILD_CONFIG=private/msm-google/build.config.floral
+BUILD_BOOT_IMG=1 MKBOOTIMG_PATH=mkbootimg.py
+VENDOR_RAMDISK_BINARY=boot.img-ramdisk.cpio KERNEL_BINARY=Image.lz4
+BOOT_IMAGE_HEADER_VERSION=2
+KERNEL_CMDLINE=&quot;console=ttyMSM0,115200n8
+androidboot.console=ttyMSM0 printk.devkmsg=on msm_rtb.filter=0x237
+ehci-hcd.park=3 service_locator.enable=1 androidboot.memcg=1
+cgroup.memory=nokmem usbcore.autosuspend=7
+androidboot.usbcontroller=a600000.dwc3 swiotlb=2048
+androidboot.boot_devices=soc/1d84000.ufshc loop.max_part=7
+buildvariant=user&quot; BASE_ADDRESS=0x00000000 PAGE_SIZE=4096
+build/build.sh
+</code></pre>
+<p>编译完成以后得到文件夹</p>
+<p>文件夹中的boot.img即为嵌入内存读写的新内核</p>
+<h3 id="刷入内核">刷入内核</h3>
+<p>使用命令</p>
+<pre><code>flash boot boot.img
+</code></pre>
+<p>即可刷入。配合前置知识中的修改纯c读写方法，即可做到绝大部分游戏裸奔。</p>
+<blockquote>
+<p>看到这里，相信你已经成功编译了属于自己的内核。</p>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[langchain-ChatGLM 个人部署]]></title>
+        <id>https://sqlcow.github.io/langchain-chatglm-ge-ren-bu-shu/</id>
+        <link href="https://sqlcow.github.io/langchain-chatglm-ge-ren-bu-shu/">
+        </link>
+        <updated>2023-06-23T09:01:57.000Z</updated>
+        <summary type="html"><![CDATA[<p>langchain是一种调用大模型的工具，这里主要用来生成提示词，实现本地知识库。也就是对大模型的知识注入。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>langchain是一种调用大模型的工具，这里主要用来生成提示词，实现本地知识库。也就是对大模型的知识注入。</p>
+<!-- more -->
+<p>[TOC]</p>
+<h2 id="windows系统部署">windows系统部署</h2>
+<blockquote>
+<p>硬件环境</p>
+<p>+ ChatGLM-6B 模型硬件需求</p>
+<p>注：如未将模型下载至本地，请执行前检查<code>$HOME/.cache/huggingface/</code>文件夹剩余空间，模型文件下载至本地需要 15 GB 存储空间。</p>
+<table>
+<thead>
+<tr>
+<th><strong>量化等级</strong></th>
+<th><strong>最低 GPU 显存</strong>（推理）</th>
+<th><strong>最低 GPU 显存</strong>（高效参数微调）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16（无量化）</td>
+<td>13 GB</td>
+<td>14 GB</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>8 GB</td>
+<td>9 GB</td>
+</tr>
+<tr>
+<td>INT4</td>
+<td>6 GB</td>
+<td>7 GB</td>
+</tr>
+</tbody>
+</table>
+<p>- Embedding 模型硬件需求</p>
+<p>本项目中选用的 Embedding 模型 [GanymedeNil/text2vec-large-chinese](<img src="file:///C:%5CUsers%5C26237%5CAppData%5CRoaming%5CTencent%5CQQTempSys%25W@GJ$ACOF(TYDYECOKVDYB.png)https://huggingface.co/GanymedeNil/text2vec-large-chinese/tree/main" alt="img" loading="lazy"> 约占用显存 3GB，也可修改为在 CPU 中运行。</p>
+</blockquote>
+<h3 id="安装anaconda和pytorch">安装anaconda和pytorch</h3>
+<h4 id="安装anaconda">安装anaconda</h4>
+<p>默认安装即可</p>
+<p><a href="https://www.anaconda.com/">Anaconda 官方下载地址| The World’s Most Popular Data Science Platform</a></p>
+<p>打开anaconda powershell prompt</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230531231014158.png" alt="image-20230531231014158" loading="lazy"></figure>
+<h4 id="安装pytorch">安装pytorch</h4>
+<p>在命令行窗口中执行下面代码，查看cuda版本</p>
+<pre><code class="language-bash">nvidia-smi
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="C:/Users/26237/AppData/Roaming/Typora/typora-user-images/image-20230601104450856.png" alt="image-20230601104450856" loading="lazy"></figure>
+<p>可见我的CUDA版本为12.0，接下来要根据这个版本的CUDA下载pytorch</p>
+<p>创建一个虚拟环境</p>
+<p>执行下面代码</p>
+<pre><code class="language-python">conda create -n PyTorch python=3.8
+</code></pre>
+<p>然后按y ，继续安装所需的各种依赖包。</p>
+<p>完成之后，输入</p>
+<pre><code class="language-python">conda info --envs
+</code></pre>
+<p>查看自己安装过的环境，如下图。</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601105848130.png" alt="image-20230601105848130" loading="lazy"></figure>
+<h5 id="替换aconda软件源为清华源并安装">替换aconda软件源为清华源并安装。</h5>
+<pre><code class="language-python">conda config --set show_channel_urls yes
+</code></pre>
+<p>输入如上代码之后在C:\Users\xxx中看到.condarc文件</p>
+<p>打开这个文件并修改文件内容为</p>
+<pre><code>channels:
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+</code></pre>
+<p>保存关闭之后执行下面命令刷新缓存。</p>
+<pre><code>Anaconda promptconda clean
+</code></pre>
+<p>打开pytorch官网，即可看到下图，官网会自动根据你的电脑，显示的即是你可安装的CUDA版本，并给出安装命令。</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110302050.png" alt="image-20230601110302050" loading="lazy"></figure>
+<p>复制官网给出的安装命令</p>
+<pre><code class="language-python">pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+</code></pre>
+<p>进入刚刚创建的环境</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110611012.png" alt="image-20230601110611012" loading="lazy"></figure>
+<p>执行安装命令即可</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601110730024.png" alt="image-20230601110730024" loading="lazy">等待安装完成。</p>
+<h5 id="验证安装是否成功">验证安装是否成功</h5>
+<p>依次执行</p>
+<pre><code class="language-python">pip list
+python 
+imoprt pytorch
+torch.cuda.is_available()
+</code></pre>
+<p>如下图这两个地方即为安装成功</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601112525725.png" alt="image-20230601112525725" loading="lazy"></figure>
+<p>接下来的所有操作都要在这个环境中进行</p>
+<h4 id="安装python">安装python</h4>
+<p>conda默认自带python，以防万一，这里查看一下python版本</p>
+<p>输入下面代码</p>
+<pre><code class="language-python">python --version
+</code></pre>
+<p>查看python版本。python版本在3.8及以上都可以。</p>
+<pre><code class="language-python"># 如果低于这个版本，可使用conda安装环境
+conda create -p /这里填写自定义的路径/env_name python=3.8
+</code></pre>
+<h3 id="安装多环境jupyter">安装多环境jupyter</h3>
+<ol>
+<li>主环境中(root)安装nb_conda: <code>conda install nb_conda</code></li>
+<li>切换到准备的安装jupyter notebook的环境中: <code>conda activate environment_name</code></li>
+<li>安装ipykernel: <code>conda install ipykernel</code></li>
+<li>重启jupyter notebook即可，如果不行可以重新进入当前环境(environment_name)中: conda activate environment_name输入:</li>
+</ol>
+<pre><code class="language-powershell">conda install jupyter notebook
+</code></pre>
+<h3 id="安装依赖">安装依赖</h3>
+<h4 id="拉取仓库">拉取仓库</h4>
+<pre><code class="language-bash">git clone https://github.com/imClumsyPanda/langchain-ChatGLM.git
+</code></pre>
+<p>如下图</p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601092622946.png" alt="image-20230601092622946" loading="lazy"></figure>
+<ul>
+<li>进入仓库目录</li>
+</ul>
+<pre><code class="language-bash">cd langchain-ChatGLM
+</code></pre>
+<ul>
+<li>安装依赖，依次执行下面代码</li>
+</ul>
+<pre><code class="language-pytho">pip install -r requirements.txt
+pip3 install -U gradio
+pip3 install modelscope
+</code></pre>
+<p><strong>注意：这一步要关掉所有代理服务器，不然会报错如下图</strong></p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601093050044.png" alt="image-20230601093050044" loading="lazy"></figure>
+<p>如果下载速度过慢</p>
+<p>执行</p>
+<pre><code class="language-python">pip install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+pip3 install -U gradio -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+pip3 install modelscope -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+</code></pre>
+<p>使用阿里版本镜像源下载。穿上草鞋，飞一般的感觉。</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601094002936.png" alt="image-20230601094002936" loading="lazy"></figure>
+<p>全部依赖安装完成之后如下图</p>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601095258383.png" alt="image-20230601095258383" loading="lazy"></figure>
+<h3 id="从本地加载chatglm-6b-int4">从本地加载chatglm-6b-int4</h3>
+<h4 id="安装git-lfs">安装Git LFS</h4>
+<p>在<a href="https://git-lfs.github.com/">git-lfs.github.com</a> 下载并安装</p>
+<p>验证安装成功</p>
+<pre><code class="language-bash">git lfs install
+</code></pre>
+<p>如下图即为安装成功<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601120328041.png" alt="image-20230601120328041" loading="lazy"></p>
+<h4 id="下载模型实现">下载模型实现</h4>
+<p>在根目录git bash</p>
+<p>输入</p>
+<pre><code class="language-bash">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/THUDM/chatglm-6b
+</code></pre>
+<p>下载完成如下图<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601121103815.png" alt="image-20230601121103815" loading="lazy"></p>
+<h4 id="下载模型本体">下载模型本体</h4>
+<p>这里使用chatglm-6b-int4量化过的模型<a href="https://cloud.tsinghua.edu.cn/d/674208019e314311ab5c/?p=%2Fchatglm-6b-int4&amp;mode=list">清华大学云盘 (tsinghua.edu.cn)</a></p>
+<p><strong>注意：不能直接下载完整模型，对模型的量化同样需要16g显存以上。只能直接下载量化过的模型</strong></p>
+<figure data-type="image" tabindex="11"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601100228946.png" alt="image-20230601100228946" loading="lazy"></figure>
+<p>量化过的模型文件大约4G</p>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601100335973.png" alt="image-20230601100335973" loading="lazy">静待下载完成</p>
+<p>将下载好的模型本体替换到模型实现中。</p>
+<h4 id="加载模型">加载模型</h4>
+<ul>
+<li>随便找一个文件夹命名为：chatglm-6b-int4（随便什么都行），将下载好的模型文件放进去。<strong>复制文件夹的路径</strong></li>
+<li>修改配置文件：configs/model_config.py，将刚才复制的模型路径添加进去</li>
+</ul>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601101035878.png" alt="image-20230601101035878" loading="lazy"></figure>
+<ul>
+<li>第94行改为true</li>
+</ul>
+<figure data-type="image" tabindex="13"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230601121959081.png" alt="image-20230601121959081" loading="lazy"></figure>
+<p>执行cli_demo.py脚本体验<strong>命令行交互</strong>：</p>
+<pre><code class="language-python">python cli_demo.py
+</code></pre>
+<p>或执行 webui.py 脚本体验 <strong>Web 交互</strong></p>
+<pre><code class="language-python">python webui.py
+</code></pre>
+<p>或执行api.py 利用 fastapi 部署 API</p>
+<pre><code class="language-python">python api.py
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用腾讯云cdn对网站进行加速]]></title>
+        <id>https://sqlcow.github.io/shi-yong-teng-xun-yun-cdn-dui-wang-zhan-jin-xing-jia-su/</id>
+        <link href="https://sqlcow.github.io/shi-yong-teng-xun-yun-cdn-dui-wang-zhan-jin-xing-jia-su/">
+        </link>
+        <updated>2023-06-23T08:59:28.000Z</updated>
+        <summary type="html"><![CDATA[<p>曾经用的是七牛云，但是因为服务器是腾讯云的，所以这里另写一篇文章使用腾讯云部署</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>曾经用的是七牛云，但是因为服务器是腾讯云的，所以这里另写一篇文章使用腾讯云部署</p>
+<!-- more -->
+<h1 id="使用腾讯云cdn对网站进行加速">使用腾讯云cdn对网站进行加速</h1>
+<blockquote>
+<p>一年以前立过一个flag，当时还在用typecho编写博客，动态发布博客的方式对于cdn来说很不友好</p>
+<p>也是在那个时候，决定要更换的hexo博客，但是换好了之后便开始了长达一年的摆烂。</p>
+<p>现在记录一下配置cdn的过程，尽量简短为要。</p>
+</blockquote>
+<h2 id="购买cdn资源">购买cdn资源</h2>
+<p>推荐良心云</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620152348788.png" alt="image-20230620152348788" loading="lazy"></figure>
+<p>既然用了cdn，那就免得回源站了，直接用腾讯云的存储桶作为网站根目录</p>
+<h2 id="配置cdn">配置cdn</h2>
+<p>首先来到静态网站界面，开启存储桶的静态网站</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155437036.png" alt="image-20230620155437036" loading="lazy"></figure>
+<p>然后源站回源策略改为</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155527580.png" alt="image-20230620155527580" loading="lazy"></figure>
+<p>访问http://blog.sqlcow.com/完美打开</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230620155549045.png" alt="image-20230620155549045" loading="lazy"></figure>
+<blockquote>
+<p>后记：附上之前写的文章一篇，为正常方式配置七牛云cdn</p>
+</blockquote>
+<blockquote>
+<p>1、创建存储空间</p>
+</blockquote>
+<figure data-type="image" tabindex="5"><img src="https://img-blog.csdnimg.cn/img_convert/eb8e935e30986bea2492c8020f5f5f9b.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>2、添加域名</p>
+</blockquote>
+<figure data-type="image" tabindex="6"><img src="https://img-blog.csdnimg.cn/img_convert/78bac1996859d693981b973f6618e12f.png" alt="img" loading="lazy"></figure>
+<p><strong>修改以下两个内容，其他都使用默认的</strong></p>
+<figure data-type="image" tabindex="7"><img src="https://img-blog.csdnimg.cn/img_convert/93bc5537c434af6bcec72b053613fbea.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>3、复制 <code>CNAME</code> 记录值</p>
+</blockquote>
+<figure data-type="image" tabindex="8"><img src="https://img-blog.csdnimg.cn/img_convert/7658412fe1d28016e2dcb6c18b5ff5ad.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>4、解析到域名</p>
+</blockquote>
+<figure data-type="image" tabindex="9"><img src="https://img-blog.csdnimg.cn/img_convert/bb6d9feea957c17182511bc2c29a480e.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>5、回到七牛云后台状态看到状态变为了<code>成功</code></p>
+</blockquote>
+<figure data-type="image" tabindex="10"><img src="https://img-blog.csdnimg.cn/img_convert/6721d9217a6393189a185def1ee0146e.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>6、点击域名后面的<code>配置</code>，申请七牛云的免费<a href="https://so.csdn.net/so/search?q=SSL&amp;spm=1001.2101.3001.7020">SSL</a>证书</p>
+</blockquote>
+<figure data-type="image" tabindex="11"><img src="https://img-blog.csdnimg.cn/img_convert/531e320f933dac74e79ef296e393dc3b.png" alt="img" loading="lazy"></figure>
+<p><strong>找到 <code>HTTPS配置</code>，点击右侧的<code>修改配置</code></strong></p>
+<figure data-type="image" tabindex="12"><img src="https://img-blog.csdnimg.cn/img_convert/56433c97ecbab475168144d7ceb4de98.png" alt="img" loading="lazy"></figure>
+<p><strong>依次点击以下内容，申请七牛云的免费证书</strong></p>
+<figure data-type="image" tabindex="13"><img src="https://img-blog.csdnimg.cn/img_convert/69ec66038b490ad124c959941469ed76.png" alt="img" loading="lazy"></figure>
+<p><strong>输入正确的登陆密码后，申请免费证书请求自动提交，耐心等待15分钟左右即可使用HTTPS访问</strong></p>
+<figure data-type="image" tabindex="14"><img src="https://img-blog.csdnimg.cn/img_convert/9cbe37737d98ded4879e58633ad80da6.png" alt="img" loading="lazy"></figure>
+<blockquote>
+<p>7、测试访问</p>
+</blockquote>
+<p><strong>设置为默认域名并上传一个文件，用来测试访问</strong></p>
+<figure data-type="image" tabindex="15"><img src="https://img-blog.csdnimg.cn/img_convert/f52bfe05d028dd38a91d5ba4f44039da.png" alt="img" loading="lazy"></figure>
+<p><strong>复制外链</strong></p>
+<figure data-type="image" tabindex="16"><img src="https://img-blog.csdnimg.cn/img_convert/341f385158737e7d12d6242bd4ae4cb9.png" alt="img" loading="lazy"></figure>
+<p><strong>测试访问</strong></p>
+<figure data-type="image" tabindex="17"><img src="https://img-blog.csdnimg.cn/img_convert/97d6f9f86b704a03382800e7f0e59983.png" alt="img" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[微信云函数开发初体验]]></title>
+        <id>https://sqlcow.github.io/wei-xin-yun-han-shu-kai-fa-chu-ti-yan/</id>
+        <link href="https://sqlcow.github.io/wei-xin-yun-han-shu-kai-fa-chu-ti-yan/">
+        </link>
+        <updated>2023-06-23T08:57:22.000Z</updated>
+        <summary type="html"><![CDATA[<p>说是微信云函数初体验，实际上也可以叫做基于微信小程序的二手交易平台的开发。来源于吉林大学的一个大创项目。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>说是微信云函数初体验，实际上也可以叫做基于微信小程序的二手交易平台的开发。来源于吉林大学的一个大创项目。</p>
+<!-- more -->
+<p>既然叫初体验，之前确实没有用过这东西。</p>
+<ul>
+<li>最开始的需求是构建一个基于微信小程序的二手物品交易平台，听到这个需求，第一反应自然是老朋友discuz了，之前搭建discuz也留下了宝贵的经验。而且discuz有私聊功能，发帖功能。<strong>美中不足就是没有商品列表之类的界面</strong></li>
+<li>顺着这个思路走下去，只需要美化一下discuz的界面即可，所以我找到了一个discuz的插件：<strong>七豆仿闲鱼</strong>。但是新的问题紧接着出现了：dicuzq不支持插件，也没有插件市场这个东西，他本来的界面就已经很好看了。所以我又给服务器重装了discuz!。结果就是discuz！的插件大部分需要付费，代表着一个时代的discuz！对小程序的支持也不是很好。所以最终放弃了使用discuz构建的方案</li>
+<li>那么我是如何接触到微信云开发的呢？在github上搜了几个微信小程序二手物品交易平台解决方案，准备重新开始部署一个。</li>
+</ul>
+<p>首先我看到star最多的是一个java项目，后端界面极其不友好，但是我还是尝试部署了一下，找了一些java网站部署的资料。结果还是蛮成功的，但是他前端写的也很简陋，这可真是不能原谅。</p>
+<p>于是来到了今天的重头戏：微信云函数开发</p>
+<p><a href="https://github.com/Taoshaoji/used-book-secondhand/">项目地址</a></p>
+<h2 id="部署教程">部署教程</h2>
+<p>基本按照官方的来</p>
+<h3 id="1-下载导入">1、下载导入</h3>
+<p>直接下载到本地，然后导入开发者工具</p>
+<blockquote>
+<p>小程序开发综合文档地址：https://developers.weixin.qq.com/miniprogram/dev/framework/</p>
+</blockquote>
+<h3 id="2-开通云环境">2、开通云环境</h3>
+<p>不罗嗦，这都是基础，直接看官方说明操作即可</p>
+<blockquote>
+<p>云开发官方文档说明：https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html</p>
+</blockquote>
+<h3 id="3-配置前端config">3、配置前端config</h3>
+<p>找到config.js文件，然后按照我写的注释更改为你自己的</p>
+<p><a href="https://github.com/Taoshaoji/used-book-secondhand/blob/master/README.assets/image-20200920223633305.png"></a></p>
+<h2 id="二-云函数">二、云函数</h2>
+<h3 id="1-修改基础信息">1、修改基础信息</h3>
+<p>每个云函数要修改的部分，我都捻出来放在了顶部，直接根据我做的注释信息进行修改，如下图所示</p>
+<figure data-type="image" tabindex="1"><a href="https://github.com/Taoshaoji/used-book-secondhand/blob/master/README.assets/image-20200920223729148.png"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920223729148.png" alt="image-20200920223729148" loading="lazy"></a></figure>
+<h3 id="2-上传全部文件">2、上传全部文件</h3>
+<p>挨个提交每个云函数，其中依赖包我已经一起上传了，无需再挨个本地去安装，直接上传所有文件即可</p>
+<figure data-type="image" tabindex="2"><a href="https://github.com/Taoshaoji/used-book-secondhand/blob/master/README.assets/image-20200920223930768.png"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920223930768.png" alt="image-20200920223930768" loading="lazy"></a></figure>
+<h2 id="三-云开发数据库">三、云开发数据库</h2>
+<h3 id="1-创建集合-设置权限">1、创建集合 设置权限</h3>
+<p>分别创建下图所示的集合，然后将所有集合的权限设置为所有可读</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920224111392%20(1).png" alt="image-20200920224111392 (1)" loading="lazy"></figure>
+<h3 id="2-设置banner">2、设置banner</h3>
+<h4 id="1在banner集合下新增一条记录">①在banner集合下新增一条记录</h4>
+<h4 id="2按照下图所示添加字段">②按照下图所示添加字段</h4>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920224159506.png" alt="image-20200920224159506" loading="lazy"></figure>
+<h4 id="补充说明">补充说明</h4>
+<p>list数组下的img为图片地址，id为唯一区分字段，url为点击轮播后跳转的地址，这个地址必须为与此小程序关联的公众号文章或者为业务域名地址，如果没有就留空即可</p>
+<h3 id="3-设置启动页图片">3、设置启动页图片</h3>
+<h4 id="1在start集合下新增一条记录">①在start集合下新增一条记录</h4>
+<h4 id="2按照下图所示添加字段-2">②按照下图所示添加字段</h4>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920224235782.png" alt="image-20200920224235782" loading="lazy"></figure>
+<h2 id="四-公众平台配置小程序不上线则不需要执行此步骤">四、公众平台配置（小程序不上线则不需要执行此步骤）</h2>
+<h3 id="1-设置基本信息">1、设置基本信息</h3>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类目</td>
+<td>生活服务 &gt; 环保回收/废品回收</td>
+</tr>
+<tr>
+<td>基础库</td>
+<td>2.4.3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-提交审核">2、提交审核</h3>
+<p>审核页面路径：pages/index/index</p>
+<h3 id="3-设置在线客服">3、设置在线客服</h3>
+<p>打开【设置】--【客服】--【添加】，绑定成功后，打开小程序【客服小助手】，状态设置为在线即可，到时候有客户咨询自动会推送到你的微信号上的</p>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20200920224525938.png" alt="image-20200920224525938" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[2023使用Discuz Q论坛系统搭建三端（h5，小程序，pc）折腾踩坑总结]]></title>
+        <id>https://sqlcow.github.io/2023-shi-yong-discuz-q-lun-tan-xi-tong-da-jian-san-duan-h5xiao-cheng-xu-pczhe-teng-cai-keng-zong-jie/</id>
+        <link href="https://sqlcow.github.io/2023-shi-yong-discuz-q-lun-tan-xi-tong-da-jian-san-duan-h5xiao-cheng-xu-pczhe-teng-cai-keng-zong-jie/">
+        </link>
+        <updated>2023-06-23T08:53:52.000Z</updated>
+        <summary type="html"><![CDATA[<p>当时是为了挑战杯才弄的论坛小程序，discuz！和discuzq是代表了一个时代的论坛程序，现在英雄垂暮。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>当时是为了挑战杯才弄的论坛小程序，discuz！和discuzq是代表了一个时代的论坛程序，现在英雄垂暮。</p>
+<!-- more -->
+<blockquote>
+<p>阅读此文前提：</p>
+<ul>
+<li>本文所有安装搭建流程基于官方安装文档宝塔面板。请先仔细阅读官方文档，再来阅读本文。</li>
+<li>官方文档有两个版本，请先搞清楚你看的是哪个版本的文档（肥肠重要）</li>
+<li>本文写于2023年3月30日。</li>
+<li>所有的踩坑均已经用特殊格式注明</li>
+</ul>
+</blockquote>
+<ul>
+<li>在按照文档安装<code>fileinfo</code> 和 <code>exif</code> 两个扩展以后，请<strong>重启php服务</strong>，否则安装程序不会识别</li>
+<li>discuz系统的迁移只能重新安装新系统，或者重新运行安装程序后覆盖配置，直接覆盖配置<strong>会导致无法上传图片</strong></li>
+<li>宝塔面板早期安装的Php7.3是独立编译zip扩展，后续安装及升级是整合编译的，导致升级后会重复加载zip模块.<br>
+为避免这个错误，后面的PHP就<strong>不再单独编译ZIP扩展</strong>了。<br>
+然后呢，PHP  7.3.8，ZIP 模块不再整合了，在面板配置中却没有安装ZIP扩展的选择。<br>
+这样新安装php7.3就会出现phpzip丢失的问题<br>
+但是ZIP扩展本来就包含在软件包里,解决这个问题,只需要手动进行添加即可.<br>
+SSH登录Linux服务器，先进入<code>php73</code>的扩展安装目录(因为php扩展里已经下载好zip扩展文件所以不用再自行下载了,直接安装)</li>
+</ul>
+<pre><code>cd /www/server/php/73/src/ext/zip/
+/www/server/php/73/bin/phpize
+./configure --with-php-config=/www/server/php/73/bin/php-config
+make
+make install
+</code></pre>
+<p>安装好zip扩展,还需要在PHP配置文件中启用.<br>
+在php.ini中添加这一行:</p>
+<pre><code>extension = zip.so
+</code></pre>
+<ul>
+<li>是<strong>删除禁用</strong><code>putenv</code>、<code>readlink</code>、<code>symlink</code>、<code>shell_exec</code> 函数，不是<strong>删除</strong>。<br>
+php配置完成以后，设置伪静态，更改运行目录，设置gzip。<br>
+访问 <code>http://&lt;绑定网站的域名名称&gt;/dl.php</code><br>
+设置定时任务</li>
+</ul>
+<pre><code>sudo -u www /usr/bin/php /www/wwwroot/&lt;网站主目录&gt;/disco schedule:run
+</code></pre>
+<h2 id="小程序h5构建">小程序/h5构建</h2>
+<p>旧版官方文档提供了两种构建方式，分别是通过HBuilderX和npm。<br>
+但是这是过时的。</p>
+<ul>
+<li>新版discuz小程序<strong>仅支持使用npm构建</strong>。如果你使用HBuilderX构建，会直接提示编译失败。</li>
+<li>小程序对npm的版本有着严格的要求。严格限制<code>node: 14.x.x</code> 版本与 <code>npm: 6.14.</code>。如果你<strong>已经安装了高版本的npm</strong>，无法安装依赖文件。<br>
+解决方案：<br>
+step1.在官网重新下载node: 14.x.x.<br>
+step2.使用控制面板卸载高版本已安装的node，并安装刚刚下载的旧版本node<br>
+step3.执行</li>
+</ul>
+<pre><code>npm uninstall -g npm  # 全局卸载npm，默认卸载高版本npm
+</code></pre>
+<p>step4.再次执行</p>
+<pre><code>npm uninstall -g npm  # 很玄学，但是再次执行卸载的确会更新旧版本npm
+</code></pre>
+<p>当你使用了正确的npm版本安装sass依赖时由于国内的网络问题，<strong>需要更换镜像源</strong>否则会爆红</p>
+<ul>
+<li>执行</li>
+</ul>
+<pre><code>npm config set sass_binary_site=https://npm.taobao.org/mirrors/node-sass
+npm install
+</code></pre>
+<p>如果你是按照官方旧版文档安装的，那么当你成功安装所有依赖，开始构建小程序时。按照官方给出的命令，依旧会报错，不要惊慌，官方偷偷的更改了构建命令<br>
++</p>
+<pre><code>npm run build:weapp
+</code></pre>
+<p>是新版的构建命令</p>
+<p>至此，小程序构建完成，在dist目录下可以找到构建好的微信小程序源码，并且可以进行源码级调试<br>
+但上传时会提示：<strong>单个分包/主包大小不能超过 2M</strong>，因此上传失败。<br>
+构建discuz论坛系统过程中最大的坑就在这里。<br>
+<strong>事实上，无论是新版文档还是旧版文档，能安装成功的最新版本是3.0.6。而这个版本，无论是小程序还是pc都已被官方弃用。官方已经在论坛中发布了discuz的全新4.2版本，以及免编译的小程序源码。discuz也更新成了单圈版本(用户为站长粉丝)和多圈版本(用户为数据粉丝)。而这些，在官方文档中，只字未提。</strong></p>
+<h2 id="新版构建">新版构建</h2>
+<p>所以可以简化小程序的构建流程为一步：<strong>下载论坛内官方提供的源码并上传到自己的账号上。</strong></p>
+<ul>
+<li>如果你已经安装了3.0.6版本的pc版，想升级官方提供的4.2react版，请注意：官方提供了两个升级包，请下载覆盖安装版，文件大小为<strong>31M</strong>。并且在<strong>网站目录</strong>下执行官方提供的升级命令，否则会出现<strong>数据库链接失败</strong>。</li>
+</ul>
+<h2 id="后记">后记</h2>
+<p>人生没有白走的路，多钻研，多动手才能实现目标。在此次构建过程中，尽管途中对npm进行了一系列操作（或者尝试了HBuilderX)，实际上都是无效的。但是，每一次的失败，都在通往成功。</p>
+]]></content>
+    </entry>
+</feed>

@@ -1,0 +1,474 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>评价类模型 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="评价类模型 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="这可能是关于评价类模型最全的文档了
+
+层次分析法
+
+
+除非题目涉及到主观性评价问题，适合于人的定性判断起重要作用的、对决策结果难于直接准确计量的场合。其他评价类问题一般不用。
+
+
+选择最佳外出旅游地，外出旅游最重视的因素之间的区别：外出旅游..." />
+    <meta name="keywords" content="数学建模,模型" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              评价类模型
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-07-25
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/jm/" class="post-tag">
+                  # 数学建模
+                </a>
+              
+                <a href="https://sqlcow.github.io/mx/" class="post-tag">
+                  # 模型
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230720173255450.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>这可能是关于评价类模型最全的文档了</p>
+<!-- more -->
+<h1 id="层次分析法">层次分析法</h1>
+<ul>
+<li>
+<p>除非题目涉及到主观性评价问题，适合于人的定性判断起重要作用的、对决策结果难于直接准确计量的场合。其他评价类问题一般不用。</p>
+</li>
+<li>
+<p>选择最佳外出旅游地，外出旅游最重视的因素之间的区别：<strong>外出旅游最重视的因素没有方案层，只求权重即可</strong></p>
+</li>
+</ul>
+<ol>
+<li>建立系统的递阶层次结构</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230720173255450.png" alt="image-20230720173255450" loading="lazy"></figure>
+<ol start="2">
+<li>对于同一层次的各元素关于上一层次中某一准则的重要 性进行两两比较，构造两两比较矩阵（判断矩阵）<strong>然后开始运行代码</strong></li>
+</ol>
+<pre><code>disp('请输入判断矩阵A')
+A=input('A=');
+[n,n] = size(A);
+% % % % % % % % % % % % %方法1： 算术平均法求权重% % % % % % % % % % % % %
+Sum_A = sum(A);
+SUM_A = repmat(Sum_A,n,1);
+Stand_A = A ./ SUM_A;
+
+disp('算术平均法求权重的结果为：');
+disp(sum(Stand_A,2)./n)
+% % % % % % % % % % % % %方法2： 几何平均法求权重% % % % % % % % % % % % %
+Prduct_A = prod(A,2);
+Prduct_n_A = Prduct_A .^ (1/n);
+disp('几何平均法求权重的结果为：');
+disp(Prduct_n_A ./ sum(Prduct_n_A))
+% % % % % % % % % % % % %方法3： 特征值法求权重% % % % % % % % % % % % %
+[V,D] = eig(A);
+Max_eig = max(max(D));
+[r,c]=find(D == Max_eig , 1);
+disp('特征值法求权重的结果为：');
+disp( V(:,c) ./ sum(V(:,c)) )
+% % % % % % % % % % % % %下面是计算一致性比例CR的环节% % % % % % % % % % % % %
+CI = (Max_eig - n) / (n-1);
+RI=[0 0.0001 0.52 0.89 1.12 1.26 1.36 1.41 1.46 1.49 1.52 1.54 1.56 1.58 1.59];  %注意哦，这里的RI最多支持 n = 15
+% 这里n=2时，一定是一致矩阵，所以CI = 0，我们为了避免分母为0，将这里的第二个元素改为了很接近0的正数
+CR=CI/RI(n);
+disp('一致性指标CI=');disp(CI);
+disp('一致性比例CR=');disp(CR);
+if CR&lt;0.10
+    disp('因为CR&lt;0.10，所以该判断矩阵A的一致性可以接受!');
+else
+    disp('注意：CR &gt;= 0.10，因此该判断矩阵A需要进行修改!');
+end
+
+</code></pre>
+<ol>
+<li>. 由判断矩阵计算被比较元素对于该准则的相对权重， 并进行一致性检验（检验通过权重才能用）</li>
+<li>根据权重矩阵计算得分，并进行排序（excel）</li>
+</ol>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724100054783.png" alt="image-20230724100054783" loading="lazy"></figure>
+<h1 id="基于熵权法的topsis模型">基于熵权法的Topsis模型</h1>
+<ul>
+<li>能充分利用原始数据的信息</li>
+<li>spsspro中不能使用如ph=7的中间作为优解</li>
+</ul>
+<ol>
+<li>
+<p>第一步：将原始矩阵正向化</p>
+<pre><code>%%  第一步：把数据复制到工作区，并将这个矩阵命名为X
+% （1）在工作区右键，点击新建（Ctrl+N)，输入变量名称为X
+% （2）在Excel中复制数据，再回到Matlab中右键，点击粘贴Excel数据（Ctrl+Shift+V）
+% （3）关掉这个窗口，点击X变量，右键另存为，保存为mat文件（下次就不用复制粘贴了，只需使用load命令即可加载数据）
+% （4）注意，代码和数据要放在同一个目录下哦。
+clear;clc
+load data_water_quality.mat
+
+%%  第二步：判断是否需要正向化
+[n,m] = size(X);
+disp(['共有' num2str(n) '个评价对象, ' num2str(m) '个评价指标']) 
+Judge = input(['这' num2str(m) '个指标是否需要经过正向化处理，需要请输入1 ，不需要输入0：  ']);
+
+if Judge == 1
+    Position = input('请输入需要正向化处理的指标所在的列，例如第2、3、6三列需要处理，那么你需要输入[2,3,6]： '); %[2,3,4]
+    disp('请输入需要处理的这些列的指标类型（1：极小型， 2：中间型， 3：区间型） ')
+    Type = input('例如：第2列是极小型，第3列是区间型，第6列是中间型，就输入[1,3,2]：  '); %[2,1,3]
+    % 注意，Position和Type是两个同维度的行向量
+    for i = 1 : size(Position,2)  %这里需要对这些列分别处理，因此我们需要知道一共要处理的次数，即循环的次数
+        X(:,Position(i)) = Positivization(X(:,Position(i)),Type(i),Position(i));
+    % Positivization是我们自己定义的函数，其作用是进行正向化，其一共接收三个参数
+    % 第一个参数是要正向化处理的那一列向量 X(:,Position(i))   回顾上一讲的知识，X(:,n)表示取第n列的全部元素
+    % 第二个参数是对应的这一列的指标类型（1：极小型， 2：中间型， 3：区间型）
+    % 第三个参数是告诉函数我们正在处理的是原始矩阵中的哪一列
+    % 该函数有一个返回值，它返回正向化之后的指标，我们可以将其直接赋值给我们原始要处理的那一列向量
+    end
+    disp('正向化后的矩阵 X =  ')
+    disp(X)
+end
+%% 作业：在这里增加是否需要算加权
+% 补充一个基础知识：m*n维的矩阵A 点乘 n维行向量B，等于这个A的每一行都点乘B
+% （注意：2017以及之后版本的Matlab才支持，老版本Matlab会报错）
+% % 假如原始数据为：
+%   A=[1, 2, 3;
+%        2, 4, 6] 
+% % 权重矩阵为：
+%   B=[ 0.2, 0.5 ,0.3 ] 
+% % 加权后为：
+%   C=A .* B
+%     0.2000    1.0000    0.9000
+%     0.4000    2.0000    1.8000
+% 类似的，还有矩阵和向量的点除， 大家可以自己试试计算A ./ B
+% 注意，矩阵和向量没有 .- 和 .+ 哦 ，大家可以试试，如果计算A.+B 和 A.-B会报什么错误。
+
+%% 这里补充一个小插曲
+% % 在上一讲层次分析法的代码中，我们可以优化以下的语句：
+% % Sum_A = sum(A);
+% % SUM_A = repmat(Sum_A,n,1);
+% % Stand_A = A ./ SUM_A;
+% % 事实上，我们把第三行换成：Stand_A = A ./ Sum_A; 也是可以的哦 
+% % (再次强调，新版本的Matlab才能运行哦)
+
+%% 第三步：对正向化后的矩阵进行标准化
+Z = X ./ repmat(sum(X.*X) .^ 0.5, n, 1);
+disp('标准化矩阵 Z = ')
+disp(Z)
+
+
+%% 让用户判断是否需要增加权重
+disp(&quot;请输入是否需要增加权重向量，需要输入1，不需要输入0&quot;)
+Judge = input('请输入是否需要增加权重： ');
+if Judge == 1
+    Judge = input('使用熵权法确定权重请输入1，否则输入0： ');
+    if Judge == 1
+        if sum(sum(Z&lt;0)) &gt;0   % 如果之前标准化后的Z矩阵中存在负数，则重新对X进行标准化
+            disp('原来标准化得到的Z矩阵中存在负数，所以需要对X重新标准化')
+            for i = 1:n
+                for j = 1:m
+                    Z(i,j) = [X(i,j) - min(X(:,j))] / [max(X(:,j)) - min(X(:,j))];
+                end
+            end
+            disp('X重新进行标准化得到的标准化矩阵Z为:  ')
+            disp(Z)
+        end
+        weight = Entropy_Method(Z);
+        disp('熵权法确定的权重为：')
+        disp(weight)
+    else
+        disp(['如果你有3个指标，你就需要输入3个权重，例如它们分别为0.25,0.25,0.5, 则你需要输入[0.25,0.25,0.5]']);
+        weight = input(['你需要输入' num2str(m) '个权数。' '请以行向量的形式输入这' num2str(m) '个权重: ']);
+        OK = 0;  % 用来判断用户的输入格式是否正确
+        while OK == 0 
+            if abs(sum(weight) -1)&lt;0.000001 &amp;&amp; size(weight,1) == 1 &amp;&amp; size(weight,2) == m  % 注意，Matlab中浮点数的比较要小心
+                OK =1;
+            else
+                weight = input('你输入的有误，请重新输入权重行向量: ');
+            end
+        end
+    end
+else
+    weight = ones(1,m) ./ m ; %如果不需要加权重就默认权重都相同，即都为1/m
+end
+
+
+%% 第四步：计算与最大值的距离和最小值的距离，并算出得分
+D_P = sum([(Z - repmat(max(Z),n,1)) .^ 2 ] .* repmat(weight,n,1) ,2) .^ 0.5;   % D+ 与最大值的距离向量
+D_N = sum([(Z - repmat(min(Z),n,1)) .^ 2 ] .* repmat(weight,n,1) ,2) .^ 0.5;   % D- 与最小值的距离向量
+S = D_N ./ (D_P+D_N);    % 未归一化的得分
+disp('最后的得分为：')
+stand_S = S / sum(S)
+[sorted_S,index] = sort(stand_S ,'descend')
+
+% A = magic(5)  % 幻方矩阵
+% M = magic(n)返回由1到n^2的整数构成并且总行数和总列数相等的n×n矩阵。阶次n必须为大于或等于3的标量。
+% sort(A)若A是向量不管是列还是行向量，默认都是对A进行升序排列。sort(A)是默认的升序，而sort(A,'descend')是降序排序。
+% sort(A)若A是矩阵，默认对A的各列进行升序排列
+% sort(A,dim)
+% dim=1时等效sort(A)
+% dim=2时表示对A中的各行元素升序排列
+% A = [2,1,3,8]
+% Matlab中给一维向量排序是使用sort函数：sort（A），排序是按升序进行的，其中A为待排序的向量；
+% 若欲保留排列前的索引，则可用 [sA,index] = sort(A,'descend') ，排序后，sA是排序好的向量，index是向量sA中对A的索引。
+% sA  =  8     3     2     1
+% index =  4     3     1     2
+
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072439233.png" alt="image-20230719072439233" loading="lazy"></figure>
+</li>
+<li>
+<p>正向化矩阵标准化</p>
+<p>如果使用熵权法需要把正向矩阵化为非负的</p>
+<p>消除不同指标量纲的影响</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072511807.png" alt="image-20230719072511807" loading="lazy"></figure>
+</li>
+<li>
+<p>计算第j项指标下第i个样本所占的比重，并将其看作相对熵计算中用到的概率（熵权法）</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072724979.png" alt="image-20230719072724979" loading="lazy"></figure>
+</li>
+<li>
+<p>计算第j项指标下第i个样本所占的比重，并将其看作相对熵计算中用到的概率（熵权法）</p>
+</li>
+</ol>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072800405.png" alt="image-20230719072800405" loading="lazy"></figure>
+<ol>
+<li>计算每个指标的信息熵，并计算信息效用值，并归一化得到每个指标的熵权（熵权法）</li>
+</ol>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072834374.png" alt="image-20230719072834374" loading="lazy"></figure>
+<ol start="4">
+<li>
+<p>计算得分并归一化</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230719072540838.png" alt="image-20230719072540838" loading="lazy"></figure>
+</li>
+</ol>
+<h1 id="灰色关联分析">灰色关联分析</h1>
+<ul>
+<li>
+<p>衡量因素间关联程度的一种方法，当样本个数较少时, 使⽤灰⾊关联分析 。</p>
+</li>
+<li>
+<p>对各项指标的最优值进行现行确定主观性过强</p>
+</li>
+<li>
+<p>分析各个因素对于结果的影响程度，也可以解决随时间变化的综合评价类问题。</p>
+</li>
+</ul>
+<ol>
+<li>画统计图（使用excel）</li>
+</ol>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724101113439.png" alt="image-20230724101113439" loading="lazy"></figure>
+<ol start="2">
+<li>确定分析数列</li>
+</ol>
+<ul>
+<li>母序列：能饭映系统行为特征的数据存到。类似于因变量y</li>
+<li>子序列： 影响系统⾏为的因素组成的数据序列 。类似于⾃变量x</li>
+</ul>
+<ol start="3">
+<li>
+<p>对变量进行预处理</p>
+</li>
+<li>
+<p>计算子序列中各个指标的关联系数</p>
+</li>
+<li>
+<p>定义灰色关联度，比较得出结论</p>
+</li>
+</ol>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230724154221203.png" alt="image-20230724154221203" loading="lazy"></figure>
+<h1 id="模糊综合评价">模糊综合评价</h1>
+<ul>
+<li>权重向量矩阵也用到了熵权法，用于评价复杂问题</li>
+</ul>
+<h1 id="总结">总结：</h1>
+<p>！！！！评价指标是关键</p>
+<figure data-type="image" tabindex="11"><img src="https://ucc.alicdn.com/pic/developer-ecology/h3c66y56apbu2_ed4a7126dc3847a2a4558de622728ecf.png" alt="403aab49dd0846a3af70bd245ce24e6d.png" loading="lazy"></figure>
+<p>灵敏度分析</p>
+<figure data-type="image" tabindex="12"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraimage-20230720182347367.png" alt="image-20230720182347367" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%B1%82%E6%AC%A1%E5%88%86%E6%9E%90%E6%B3%95">层次分析法</a></li>
+<li><a href="#%E5%9F%BA%E4%BA%8E%E7%86%B5%E6%9D%83%E6%B3%95%E7%9A%84topsis%E6%A8%A1%E5%9E%8B">基于熵权法的Topsis模型</a></li>
+<li><a href="#%E7%81%B0%E8%89%B2%E5%85%B3%E8%81%94%E5%88%86%E6%9E%90">灰色关联分析</a></li>
+<li><a href="#%E6%A8%A1%E7%B3%8A%E7%BB%BC%E5%90%88%E8%AF%84%E4%BB%B7">模糊综合评价</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结：</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/AjVHWV8P1/">
+              <h3 class="post-title">
+                从零复现ChatGPT-------对于生成式大语言模型的源码理解（一）
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

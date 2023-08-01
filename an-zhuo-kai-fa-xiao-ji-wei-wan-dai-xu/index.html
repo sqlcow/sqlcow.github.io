@@ -1,0 +1,308 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>安卓开发小记（未完待续 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="安卓开发小记（未完待续 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="实际上是因为java水平太差了才没有写完这篇文章的，预期写的是一个通过机器码识别的多用户相册上传系统。没错是个病毒
+
+第一个项目
+使用android_studio创建第一个安卓项目
+模板配置为empty
+// 定义主活动类
+public c..." />
+    <meta name="keywords" content="安卓" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              安卓开发小记（未完待续
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/az/" class="post-tag">
+                  # 安卓
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraQQ%E6%88%AA%E5%9B%BE20230208205024.png" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>实际上是因为java水平太差了才没有写完这篇文章的，预期写的是一个通过机器码识别的多用户相册上传系统。<s>没错是个病毒</s></p>
+<!-- more -->
+<h2 id="第一个项目">第一个项目</h2>
+<p>使用android_studio创建第一个安卓项目</p>
+<p>模板配置为empty</p>
+<pre><code class="language-java">// 定义主活动类
+public class MainActivity extends AppCompatActivity {
+  
+    // 重写 onCreate 方法
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // 调用父类的 onCreate 方法
+        super.onCreate(savedInstanceState);
+        // 加载布局文件
+        setContentView(R.layout.activity_main);
+    }
+}
+
+</code></pre>
+<p><code>onCreate</code>方法是Android系统中活动生命周期中的一个回调方法，在活动第一次创建时调用。通常，重写该方法是为了执行初始化活动的操作，如加载布局、初始化变量、绑定事件等</p>
+<p>那么来到<code>R.layout.activity_main</code>处</p>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraQQ%E6%88%AA%E5%9B%BE20230208205024.png" alt="QQ截图20230208205024" loading="lazy"></figure>
+<p>看到源代码实际上只是继承了父类的初始化方法，并且导入了一个布局文件</p>
+<p>布局文件的样子如上图。</p>
+<p>那么推测此应用打包后运行界面应该和上图相似。</p>
+<p>实测</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraQQ%E6%88%AA%E5%9B%BE20230208205310.png" alt="QQ截图20230208205310" loading="lazy"></figure>
+<h2 id="引入依赖">引入依赖</h2>
+<p><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraQQ%E6%88%AA%E5%9B%BE20230208211959.png" alt="QQ截图20230208211959" loading="lazy">如需向您的项目添加依赖项，请在模块的 <code>build.gradle</code> 文件的 <code>dependencies</code> 代码块中指定依赖项配置，如 <code>implementation</code>。</p>
+<p>实际上也有别的引入方式，但是不如<code>implementation</code>省事</p>
+<pre><code class="language-java">import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+public class JpgFileUploader {
+    // jpg文件的后缀名
+    private static final String JPG_SUFFIX = &quot;.jpg&quot;;
+    // 服务器的URL地址
+    private static final String SERVER_URL = &quot;your_server_url_here&quot;;
+
+    // OkHttpClient对象，用于发送请求
+    private final OkHttpClient client = new OkHttpClient();
+
+    // 上传jpg文件的主要方法
+    public void uploadJpgFiles() throws IOException {
+        // 查找所有的jpg文件
+        List&lt;File&gt; jpgFiles = findJpgFiles();
+        // 遍历所有的jpg文件，并上传到服务器
+        for (File jpgFile : jpgFiles) {
+            uploadFile(jpgFile);
+        }
+    }
+
+    // 查找所有的jpg文件
+    private List&lt;File&gt; findJpgFiles() {
+        List&lt;File&gt; jpgFiles = new ArrayList&lt;&gt;();
+        // 在这里添加遍历文件系统的代码，查找jpg文件
+        // ...
+        return jpgFiles;
+    }
+
+    // 上传单个文件到服务器
+    private void uploadFile(File file) throws IOException {
+        // 创建请求体
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                // 向请求体中添加文件
+                .addFormDataPart(&quot;file&quot;, file.getName(),
+                        RequestBody.create(MediaType.parse(&quot;image/jpeg&quot;), file))
+                .build();
+        // 创建请求
+        Request request = new Request.Builder()
+                .url(SERVER_URL)
+                .post(requestBody)
+                .build();
+        // 发送请求
+        Response response = client.newCall(request).execute();
+        // 如果请求失败，抛出异常
+        if (!response.isSuccessful()) {
+            throw new IOException(&quot;Failed to upload file: &quot; + response);
+        }
+    }
+
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A1%B9%E7%9B%AE">第一个项目</a></li>
+<li><a href="#%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96">引入依赖</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/dong-cai-xue-gong-zi-dong-da-qia-cheng-xu/">
+              <h3 class="post-title">
+                东财学工自动打卡
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

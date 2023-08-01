@@ -1,0 +1,323 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>小米12pro，小米平板5个人完美调教方案 | SQLCOW</title>
+<link rel="shortcut icon" href="https://sqlcow.github.io/favicon.ico?v=1690881057179">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://sqlcow.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="小米12pro，小米平板5个人完美调教方案 | SQLCOW - Atom Feed" href="https://sqlcow.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="第一次从安卓内核层面看应用调度，以自己的两台设备为例
+
+nanu小米平板5
+
+先说说对米板5的评价：因为要看网课的缘故（微经真特么难），在我明知6g运存+860+MIUI集一身的米板5会烂成答辩的情况下依旧买了他。不要问为什么，问就是穷。果..." />
+    <meta name="keywords" content="安卓,数码" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://sqlcow.github.io">
+  <img class="avatar" src="https://sqlcow.github.io/images/avatar.png?v=1690881057179" alt="">
+  </a>
+  <h1 class="site-title">
+    SQLCOW
+  </h1>
+  <p class="site-description">
+    本博客已迁移到blog.sqlcow.com
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://sqlcow.github.io/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="http://temp.sqlcow.com/" class="menu">
+          照片墙
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              小米12pro，小米平板5个人完美调教方案
+            </h2>
+            <div class="post-info">
+              <span>
+                2023-06-23
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://sqlcow.github.io/az/" class="post-tag">
+                  # 安卓
+                </a>
+              
+                <a href="https://sqlcow.github.io/sm/" class="post-tag">
+                  # 数码
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora59561CF4CC5EA469B58C2871F2236D44.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>第一次从安卓内核层面看应用调度，以自己的两台设备为例</p>
+<!-- more -->
+<h1 id="nanu小米平板5">nanu小米平板5</h1>
+<ul>
+<li>先说说对米板5的评价：因为要看网课的缘故（微经真特么难），在我明知<strong>6g运存+860+MIUI</strong>集一身的米板5会烂成答辩的情况下依旧买了他。不要问为什么，问就是穷。果不其然，这板子就是依托答辩。</li>
+<li>说一下优化理念：体验&gt;续航，860的性能已经不足以极致续航的同时还能日用流畅。经过两天多的折腾，（大部分时间都是在水课上）总算是能勉强使用了。</li>
+</ul>
+<h2 id="第三方调度">第三方调度</h2>
+<p>无脑上scene5就行了，米板5的cpu带不动scene6的fas调度。而且scene6的调度策略略怂，不如scene5。</p>
+<p>[scene5](http://cos.sqlcow.com/Scene5_6.2.0 Alpha7.apk)</p>
+<p>scene5进行分应用配置。</p>
+<ul>
+<li>全局使用动态调节</li>
+<li>和平精英选择极速模式</li>
+<li>系统桌面，备份，应用包管理组件选择性能模式</li>
+<li>应用偏见：tim，qq，微信</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraA45331625CFD40FC63900BD40C35C457.jpg" alt="A45331625CFD40FC63900BD40C35C457" loading="lazy"></figure>
+<h2 id="温控云控">温控云控</h2>
+<p>温控：使用scene的丧心病狂版温控。删删删就完事。平板巨大的散热面积不需要控制温度。但是不建议直接全部删掉，否则容易撞温度墙导致帧率不稳。所以还是用个scene</p>
+<p>云控：[miui性能救星](http://cos.sqlcow.com/MIUI 性能救星_1.0.9.apk)，抛开性能谈功耗纯流氓行为。一言以蔽之miui的joyose。</p>
+<blockquote>
+<p>就他控制器你的手机，一热就降低功耗，本来能过去的事情，他为了加长使用时间，降低你的手机性能，其实就是一个垃圾程序，不知道MIUI为什么参加这个东西</p>
+</blockquote>
+<p>使用miui性能救星屏蔽全部云控规则</p>
+<figure data-type="image" tabindex="2"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraB2117062C4FDC6032E79787E273196EF.jpg" alt="B2117062C4FDC6032E79787E273196EF" loading="lazy"></figure>
+<h2 id="asopt">Asopt</h2>
+<p>大佬的游戏线程调整模块，牛逼就完了。<a href="http://cos.sqlcow.com/Magisk_AsoulOpt_A.0B.zip">Asopt</a></p>
+<h2 id="ai内存管理">ai内存管理</h2>
+<p>大量减少后台内存占用，提高保后台能力。</p>
+<p>开启乖巧模式</p>
+<figure data-type="image" tabindex="3"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora59561CF4CC5EA469B58C2871F2236D44.jpg" alt="59561CF4CC5EA469B58C2871F2236D44" loading="lazy"></figure>
+<h2 id="墓碑后台">墓碑后台</h2>
+<p>微信qq肯定不能自启动的，要不然怎么打开别的软件</p>
+<p>在不保留后台的情况下为了接收消息</p>
+<p>微信采用FCM推送，QQ采用mipush</p>
+<p>墓碑模块使用millite模块</p>
+<p><a href="http://cos.sqlcow.com/millite">millite</a>压后台很稳</p>
+<figure data-type="image" tabindex="4"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraD395E6BE9E1D8E4ECB9E8F73E47B766F.jpg" alt="D395E6BE9E1D8E4ECB9E8F73E47B766F" loading="lazy"></figure>
+<h2 id="鼠标指针">鼠标指针</h2>
+<p>使用鼠标指针替换模块</p>
+<p>替换miui魔改版指针为电脑版指针</p>
+<p><a href="http://cos.sqlcow.com/%E9%BC%A0%E6%A0%87%E6%8C%87%E9%92%88%E6%9B%BF%E6%8D%A2%E6%A8%A1%E5%9D%97.apk">鼠标指针替换模块</a></p>
+<h2 id="后台强制打盹">后台强制打盹</h2>
+<p>因为后台要接收消息，没有采用打盹策略。耗电就耗电吧。</p>
+<h2 id="桌面动画美化">桌面动画美化</h2>
+<p>MIUI原有的动画就是一坨答辩，掉帧严重，使用MIUIhomeR模块美化一下。</p>
+<p><a href="http://cos.sqlcow.com/MiuiHomeR_1.0.6.329ec9c.apk">MIUIhomeR</a></p>
+<p>美化前：<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraqian.gif" alt="qian" loading="lazy"></p>
+<p>美化后：<img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typorahou.gif" alt="hou" loading="lazy"></p>
+<p>所有调教完成以后游戏实测：</p>
+<figure data-type="image" tabindex="5"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora1682137835147.jpg" alt="1682137835147" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora1682137835154.jpg" alt="1682137835154" loading="lazy"></figure>
+<p>丝滑起飞</p>
+<h1 id="zenus小米12pro">zenus小米12pro</h1>
+<ul>
+<li>作为高考结束买的主力机，骁龙8+哪怕放在2023年也是依旧十分能打（价格也十分能打），哪怕不去进行调教，系统原厂自带的系统也足以满足主流游戏120帧。</li>
+<li>优化理念：尽可能提升体验，极致丝滑的同时也要保证足够的续航和充电速度</li>
+</ul>
+<h2 id="屏幕刷新率">屏幕刷新率</h2>
+<p>自然开2k+120帧了，买手机回来又不是为了供着他。</p>
+<figure data-type="image" tabindex="7"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typoraB8F509198D709D26F0D1DE5972F47F7C.jpg" alt="B8F509198D709D26F0D1DE5972F47F7C" loading="lazy"></figure>
+<h2 id="第三方调度-2">第三方调度</h2>
+<p>使用scene6在线调度，禁用joyse</p>
+<p>FAS的理念极其先进，极大提高了游戏体验。</p>
+<blockquote>
+<p>在屏幕刷新率与游戏帧率一致时，FAS达到最佳工作状态。但如果二者无法保持一致，甚至不是工整的倍数关系时，就会出现帧间隔抖动。<br>
+例如：在120Hz的屏幕上显示90帧内容时，预期是每隔11.11ms刷新一次画面，但屏幕每隔8.33ms刷新刷新一次画面。这就意味着画面要么提前刷新，要么延后刷新。<br>
+于是真实的画面刷新间隔是8.33ms和16.66ms都有，只是平均下来接近11.11ms。但16.66ms不是60Hz的帧间隔吗，对90帧来说就是卡了吧。<br>
+且算一下，90帧中30帧间隔16.66ms，60帧间隔8.33ms，这不刚刚好一秒钟显示90帧。<br>
+(30<em>16.66=499.8)+(60</em>8.33=499.8)=999.6ms<br>
+FAS记住了这一点，允许在刷新率/帧率不一致时，帧延迟数不超过[预期]时不判定为卡顿。图1中的Frame SYNC Offset是用来调节这个[预期]值。</p>
+</blockquote>
+<h2 id="系统设置">系统设置</h2>
+<p>cpu缓存区空间改为65536kb（显著提高了性能）</p>
+<figure data-type="image" tabindex="8"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora1CA28884F848D4E6E17AABBCDA903C7E.jpg" alt="img" loading="lazy"></figure>
+<p>停止系统跟踪</p>
+<figure data-type="image" tabindex="9"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora92B177F452765E2F9EA0DC56820E2F79.jpg" alt="img" loading="lazy"></figure>
+<h2 id="动画魔改">动画魔改</h2>
+<p><a href="http://cos.sqlcow.com/MiuiHomeR_1.0.6.329ec9c.apk">MIUIhomeR</a>魔改一下动画</p>
+<h2 id="徕卡">徕卡</h2>
+<p>既然是日用为主，拍照功能自然不能少</p>
+<p>在此次大型魔改前拍照一直用的是谷歌相机，但是小米徕卡自带的相机算法也很顶，只不过是不下放而已。而且成像速度远胜于谷歌相机。</p>
+<p>激活核心破解然后直接安装徕卡即可</p>
+<p><a href="http://cos.sqlcow.com/Apk-MIUI_Camera-v230210.apk">徕卡相机</a></p>
+<ul>
+<li>由于骁龙8gen1plus这颗芯片本身的性能够强，所以不再进行其他优化了，多此一举。事实上最好清楚自己的需求再折腾，调度无脑上scene，软件主要是老旧64位软件对比新应用，软件的优化对日用影响还是很大的，臃肿一点的打开猛吃运存，模块就是少而精有效不冲突，还有就是非必要不要改底层文件，适合自己的最好。</li>
+</ul>
+<p>最后游戏实测：王者荣耀全局120帧稳定游戏一小时</p>
+<figure data-type="image" tabindex="10"><img src="https://typora-1314670570.cos.ap-beijing.myqcloud.com//typora3011155118CA29691B8829CBB62D2A7C.jpg" alt="img" loading="lazy"></figure>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#nanu%E5%B0%8F%E7%B1%B3%E5%B9%B3%E6%9D%BF5">nanu小米平板5</a>
+<ul>
+<li><a href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E8%B0%83%E5%BA%A6">第三方调度</a></li>
+<li><a href="#%E6%B8%A9%E6%8E%A7%E4%BA%91%E6%8E%A7">温控云控</a></li>
+<li><a href="#asopt">Asopt</a></li>
+<li><a href="#ai%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86">ai内存管理</a></li>
+<li><a href="#%E5%A2%93%E7%A2%91%E5%90%8E%E5%8F%B0">墓碑后台</a></li>
+<li><a href="#%E9%BC%A0%E6%A0%87%E6%8C%87%E9%92%88">鼠标指针</a></li>
+<li><a href="#%E5%90%8E%E5%8F%B0%E5%BC%BA%E5%88%B6%E6%89%93%E7%9B%B9">后台强制打盹</a></li>
+<li><a href="#%E6%A1%8C%E9%9D%A2%E5%8A%A8%E7%94%BB%E7%BE%8E%E5%8C%96">桌面动画美化</a></li>
+</ul>
+</li>
+<li><a href="#zenus%E5%B0%8F%E7%B1%B312pro">zenus小米12pro</a>
+<ul>
+<li><a href="#%E5%B1%8F%E5%B9%95%E5%88%B7%E6%96%B0%E7%8E%87">屏幕刷新率</a></li>
+<li><a href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E8%B0%83%E5%BA%A6-2">第三方调度</a></li>
+<li><a href="#%E7%B3%BB%E7%BB%9F%E8%AE%BE%E7%BD%AE">系统设置</a></li>
+<li><a href="#%E5%8A%A8%E7%94%BB%E9%AD%94%E6%94%B9">动画魔改</a></li>
+<li><a href="#%E5%BE%95%E5%8D%A1">徕卡</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://sqlcow.github.io/fps-shou-you-ni-xiang-fen-xi-gao-qing-chong-zhi-ban/">
+              <h3 class="post-title">
+                FPS手游逆向分析高清重制版
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: '34fe31a5fd403deae62d',
+    clientSecret: '574f12d49f2100d135eceb091d1b034fa31e6f10',
+    repo: 'sqlcowtalk',
+    owner: 'sqlcow',
+    admin: ['sqlcow'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by <a href="http://blog.sqlcow.com" target="_blank">王广宇</a>
+  <a class="rss" href="https://sqlcow.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
